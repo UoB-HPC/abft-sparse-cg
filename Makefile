@@ -2,7 +2,7 @@ CC      = cc
 CFLAGS  = -std=c99 -O3 -Wall -g
 LDFLAGS = -lm
 
-EXES = cg-baseline cg-constraints cg-sec7 cg-sec8 cg-secded
+EXES = cg-baseline cg-constraints cg-sed cg-sec7 cg-sec8 cg-secded
 COMMON_OBJS = cg.o ecc.o mmio.o
 
 all: $(EXES)
