@@ -74,8 +74,7 @@ int main(int argc, char *argv[])
     int start_bit   = (rand() % region_size) + params.bitflip_region_start;
     for (int bit = start_bit; bit < start_bit + params.num_bit_flips; bit++)
     {
-      int word  = bit / 32;
-      ((uint32_t*)(A.elements+index))[word] ^= 1<<(bit%32);
+      flip_bit(A.elements+index, bit);
       printf("*** flipping bit %d of element (%d,%d) ***\n", bit, col, row);
     }
   }
@@ -171,6 +170,11 @@ int main(int argc, char *argv[])
   free(Ax);
 
   return 0;
+}
+
+void flip_bit(matrix_entry *element, uint32_t bit)
+{
+  ((uint32_t*)element)[bit/32] ^= 0x1 << (bit % 32);
 }
 
 double get_timestamp()

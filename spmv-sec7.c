@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "common.h"
 
 // Initialize ECC for a sparse matrix
@@ -34,8 +36,13 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
     uint32_t syndrome = ecc_compute_col8(element);
     if (syndrome)
     {
-      ecc_correct_col8(&element, syndrome);
+      // Unflip bit
+      uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
+      flip_bit(&element, bit);
       matrix.elements[i] = element;
+
+      printf("[ECC] corrected bit %u of (%d,%d)\n",
+             bit, element.col & 0x00FFFFFF, element.row & 0x00FFFFFF);
     }
 
     // Mask out ECC from high order column bits

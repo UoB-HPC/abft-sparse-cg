@@ -87,10 +87,8 @@ uint32_t ecc_compute_overall_parity(matrix_entry element)
   return __builtin_parity(data[0] ^ data[1] ^ data[2] ^ data[3]);
 }
 
-void ecc_correct_col8(matrix_entry *element, uint32_t syndrome)
+uint32_t ecc_get_flipped_bit_col8(uint32_t syndrome)
 {
-  uint32_t *data = (uint32_t*)element;
-
   // Compute position of flipped bit
   uint32_t hamm_bit = 0;
   for (int p = 1; p <= 7; p++)
@@ -106,12 +104,7 @@ void ecc_correct_col8(matrix_entry *element, uint32_t syndrome)
   else if (data_bit >= 24)
     data_bit += 8;
 
-  // Unflip bit
-  uint32_t word = data_bit / 32;
-  data[word] ^= 0x1 << (data_bit % 32);
-
-  printf("[ECC] corrected bit %u of (%d,%d)\n",
-         data_bit, element->col & 0x00FFFFFF, element->row & 0x00FFFFFF);
+  return data_bit;
 }
 
 void gen_ecc7_masks()
