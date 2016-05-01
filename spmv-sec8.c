@@ -46,16 +46,14 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
         uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
         flip_bit(&element, bit);
 
-        printf("[ECC] corrected bit %u of (%d,%d)\n",
-               bit, element.col & 0x00FFFFFF, element.row & 0x00FFFFFF);
+        printf("[ECC] corrected bit %u at index %d\n", bit, i);
       }
       else
       {
         // Correct overall parity bit
         element.col ^= 0x1 << 24;
 
-        printf("[ECC] corrected overall parity bit for %d,%d\n",
-              element.col & 0x00FFFFFF, element.row & 0x00FFFFFF);
+        printf("[ECC] corrected overall parity bit at index %d\n", i);
       }
       matrix.elements[i] = element;
     }

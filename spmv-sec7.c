@@ -41,8 +41,7 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
       flip_bit(&element, bit);
       matrix.elements[i] = element;
 
-      printf("[ECC] corrected bit %u of (%d,%d)\n",
-             bit, element.col & 0x00FFFFFF, element.row & 0x00FFFFFF);
+      printf("[ECC] corrected bit %u at index %d\n", bit, i);
     }
 
     // Mask out ECC from high order column bits

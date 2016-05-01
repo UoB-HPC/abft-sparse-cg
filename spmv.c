@@ -3,7 +3,7 @@
 // Initialize ECC for a sparse matrix
 void init_matrix_ecc(sparse_matrix M)
 {
-  // Nothing to do
+  // Not using ECC - nothing to do
 }
 
 // Sparse matrix vector product

@@ -67,15 +67,13 @@ int main(int argc, char *argv[])
     // Flip a set of random (consecutive) bits in a random matrix element
     srand(time(NULL));
     int index = rand() % A.nnz;
-    int col   = A.elements[index].col & 0x00FFFFFF;
-    int row   = A.elements[index].row & 0x00FFFFFF;
     int region_size = (params.bitflip_region_end - params.bitflip_region_start);
     region_size -= params.num_bit_flips;
     int start_bit   = (rand() % region_size) + params.bitflip_region_start;
     for (int bit = start_bit; bit < start_bit + params.num_bit_flips; bit++)
     {
       flip_bit(A.elements+index, bit);
-      printf("*** flipping bit %d of element (%d,%d) ***\n", bit, col, row);
+      printf("*** flipping bit %d at index %d ***\n", bit, index);
     }
   }
 

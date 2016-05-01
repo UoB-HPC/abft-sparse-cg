@@ -32,8 +32,7 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
       uint32_t next_row = matrix.elements[i+1].row;
       if (element.row > next_row)
       {
-        printf("row index order violated for (%d,%d)\n",
-               element.col, element.row);
+        printf("row index order violated at index %d\n", i);
         exit(1);
       }
       else if (element.row == next_row)
@@ -42,8 +41,7 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
         uint32_t next_col = matrix.elements[i+1].col;
         if (element.col >= next_col)
         {
-          printf("column index order violated for (%d,%d)\n",
-                 element.col, element.row);
+          printf("column index order violated at index %d\n", i);
           exit(1);
         }
       }
