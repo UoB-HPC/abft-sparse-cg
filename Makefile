@@ -5,7 +5,7 @@ LDFLAGS = -lm
 EXES =
 COMMON_OBJS = cg.o mmio.o
 
-ARCH = $(shell echo \$MACHTYPE)
+ARCH = $(shell uname -p)
 
 all:
 	make -C matrices
@@ -30,7 +30,7 @@ $(eval $(call COO_EXE, cg-coo-c-sec7, COO/c/spmv-sec7.o))
 $(eval $(call COO_EXE, cg-coo-c-sec8, COO/c/spmv-sec8.o))
 $(eval $(call COO_EXE, cg-coo-c-secded, COO/c/spmv-secded.o))
 
-ifeq (,$(findstring arm,$(ARCH)))
+ifneq (,$(findstring armv7,$(ARCH)))
   $(eval $(call COO_EXE, cg-coo-arm32-sed, COO/arm32/spmv-sed.o))
 endif
 
