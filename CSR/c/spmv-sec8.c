@@ -67,7 +67,7 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
       // Mask out ECC from high order column bits
       colval.column &= 0x00FFFFFF;
 
-      tmp += matrix.values[i] * vector[colval.column];
+      tmp += colval.value * vector[colval.column];
     }
 
     result[row] = tmp;
