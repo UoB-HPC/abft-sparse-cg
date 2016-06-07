@@ -11,7 +11,11 @@
 
 #include "mmio.h"
 
+#if COO
 #include "COO/common.h"
+#elif CSR
+#include "CSR/common.h"
+#endif
 
 struct
 {
@@ -70,7 +74,8 @@ int main(int argc, char *argv[])
     int start_bit   = (rand() % region_size) + params.bitflip_region_start;
     for (int bit = start_bit; bit < start_bit + params.num_bit_flips; bit++)
     {
-      flip_bit(A.elements+index, bit);
+      // TODO
+      //flip_bit(A.elements+index, bit);
       printf("*** flipping bit %d at index %d ***\n", bit, index);
     }
   }
@@ -157,7 +162,8 @@ int main(int argc, char *argv[])
   printf("max error   = %lf\n", max_err);
   printf("\n");
 
-  free(A.elements);
+  // TODO
+  //free(A.elements);
   free(b);
   free(x);
   free(r);
