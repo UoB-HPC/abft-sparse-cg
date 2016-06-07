@@ -37,7 +37,7 @@ endef
 
 $(eval $(call CSR_EXE, cg-csr-c-baseline, CSR/c/spmv-baseline.o))
 $(eval $(call CSR_EXE, cg-csr-c-sed, CSR/c/spmv-sed.o))
-#$(eval $(call CSR_EXE, cg-csr-c-sec7, CSR/c/spmv-sec7.o))
+$(eval $(call CSR_EXE, cg-csr-c-sec7, CSR/c/spmv-sec7.o))
 #$(eval $(call CSR_EXE, cg-csr-c-sec8, CSR/c/spmv-sec8.o))
 #$(eval $(call CSR_EXE, cg-csr-c-secded, CSR/c/spmv-secded.o))
 
