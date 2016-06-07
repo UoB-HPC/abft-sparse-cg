@@ -74,8 +74,16 @@ int main(int argc, char *argv[])
     int start_bit   = (rand() % region_size) + params.bitflip_region_start;
     for (int bit = start_bit; bit < start_bit + params.num_bit_flips; bit++)
     {
-      // TODO
-      //flip_bit(A.elements+index, bit);
+#if COO
+      flip_bit(A.elements+index, bit);
+#elif CSR
+      csr_colval colval;
+      colval.value = A.values[index];
+      colval.column = A.cols[index];
+      flip_bit(&colval, bit);
+      A.values[index] = colval.value;
+      A.cols[index] = colval.column;
+#endif
       printf("*** flipping bit %d at index %d ***\n", bit, index);
     }
   }
@@ -174,11 +182,6 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void flip_bit(matrix_entry *element, uint32_t bit)
-{
-  ((uint32_t*)element)[bit/32] ^= 0x1 << (bit % 32);
-}
-
 double get_timestamp()
 {
   struct timeval tv;
@@ -207,7 +210,11 @@ void parse_arguments(int argc, char *argv[])
   params.conv_threshold = 0.001;
   params.num_bit_flips = 0;
   params.bitflip_region_start = 0;
+#if COO
   params.bitflip_region_end   = 128;
+#elif CSR
+  params.bitflip_region_end   = 96;
+#endif
 
   params.num_blocks = 25;
   params.matrix_file = "matrices/shallow_water1/shallow_water1.mtx";

@@ -94,11 +94,11 @@ static int is_power_of_2(uint32_t x)
   return ((x != 0) && !(x & (x - 1)));
 }
 
-// Compute the overall parity of a 128-bit matrix element
-uint32_t ecc_compute_overall_parity(matrix_entry element)
+// Compute the overall parity of a 96-bit matrix element
+uint32_t ecc_compute_overall_parity(csr_colval colval)
 {
-  uint32_t *data = (uint32_t*)&element;
-  return __builtin_parity(data[0] ^ data[1] ^ data[2] ^ data[3]);
+  uint32_t *data = (uint32_t*)&colval;
+  return __builtin_parity(data[0] ^ data[1] ^ data[2]);
 }
 
 // This function will use the error 'syndrome' generated from a 7-bit parity

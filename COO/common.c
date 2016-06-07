@@ -92,3 +92,8 @@ sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks)
 
   return M;
 }
+
+void flip_bit(matrix_entry *element, uint32_t bit)
+{
+  ((uint32_t*)element)[bit/32] ^= 0x1 << (bit % 32);
+}
