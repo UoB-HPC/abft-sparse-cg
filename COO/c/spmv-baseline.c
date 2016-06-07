@@ -1,21 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "common.h"
+#include "../common.h"
 
 // Initialize ECC for a sparse matrix
 void init_matrix_ecc(sparse_matrix M)
 {
-  // Add ECC protection to matrix elements
-  for (unsigned i = 0; i < M.nnz; i++)
-  {
-    matrix_entry element = M.elements[i];
-
-    // Compute overall parity bit for whole codeword
-    element.col |= ecc_compute_overall_parity(element) << 31;
-
-    M.elements[i] = element;
-  }
+  // Not using ECC - nothing to do
 }
 
 // Sparse matrix vector product
@@ -32,16 +20,6 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
   {
     // Load non-zero element
     matrix_entry element = matrix.elements[i];
-
-    // Check overall parity bit
-    if (ecc_compute_overall_parity(element))
-    {
-      printf("[ECC] error detected at index %d\n", i);
-      exit(1);
-    }
-
-    // Mask out ECC from high order column bits
-    element.col &= 0x00FFFFFF;
 
     // Multiply element value by the corresponding vector value
     // and accumulate into result vector

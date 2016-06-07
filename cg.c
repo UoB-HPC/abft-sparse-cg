@@ -11,7 +11,7 @@
 
 #include "mmio.h"
 
-#include "common.h"
+#include "COO/common.h"
 
 struct
 {

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "common.h"
+#include "../common.h"
 
 // Initialize ECC for a sparse matrix
 void init_matrix_ecc(sparse_matrix M)
@@ -12,9 +12,6 @@ void init_matrix_ecc(sparse_matrix M)
 
     // Generate ECC and store in high order column bits
     element.col |= ecc_compute_col8(element);
-
-    // Compute overall parity bit for whole codeword
-    element.col |= ecc_compute_overall_parity(element) << 24;
 
     M.elements[i] = element;
   }
@@ -35,27 +32,16 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
     // Load non-zero element
     matrix_entry element = matrix.elements[i];
 
-    // Check overall parity bit
-    if (ecc_compute_overall_parity(element))
+    // Check ECC
+    uint32_t syndrome = ecc_compute_col8(element);
+    if (syndrome)
     {
-      // Compute error syndrome from hamming bits
-      uint32_t syndrome = ecc_compute_col8(element);
-      if (syndrome)
-      {
-        // Unflip bit
-        uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
-        flip_bit(&element, bit);
-
-        printf("[ECC] corrected bit %u at index %d\n", bit, i);
-      }
-      else
-      {
-        // Correct overall parity bit
-        element.col ^= 0x1 << 24;
-
-        printf("[ECC] corrected overall parity bit at index %d\n", i);
-      }
+      // Unflip bit
+      uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
+      flip_bit(&element, bit);
       matrix.elements[i] = element;
+
+      printf("[ECC] corrected bit %u at index %d\n", bit, i);
     }
 
     // Mask out ECC from high order column bits
