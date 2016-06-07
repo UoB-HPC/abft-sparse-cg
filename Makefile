@@ -8,8 +8,12 @@ COMMON_OBJS = cg.o mmio.o
 all:
 	make -C matrices
 
+cg-coo.o: cg.c COO/common.h
+	$(CC) $(CFLAGS) -DCOO=1 -c $< -o $@
+
+
 define COO_EXE
-$(1): $(2) $(COMMON_OBJS)
+$(1): $(2) cg-coo.o mmio.o COO/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
 $(2): COO/common.h COO/ecc.h
 EXES += $(1)

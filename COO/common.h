@@ -16,6 +16,7 @@ typedef struct
 
 typedef struct
 {
+  unsigned N;
   unsigned nnz;
   matrix_entry *elements;
 } sparse_matrix;
@@ -31,5 +32,8 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N);
 
 // Flip a specific bit in a matrix element
 void flip_bit(matrix_entry* element, uint32_t bit);
+
+// Load a sparse matrix from a matrix-market format file
+sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks);
 
 #endif // COMMON_H

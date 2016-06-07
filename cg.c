@@ -26,7 +26,6 @@ struct
 } params;
 
 double        get_timestamp();
-sparse_matrix load_sparse_matrix(int *N);
 void          parse_arguments(int argc, char *argv[]);
 
 
@@ -34,30 +33,29 @@ int main(int argc, char *argv[])
 {
   parse_arguments(argc, argv);
 
-  int N;
-  sparse_matrix A = load_sparse_matrix(&N);
+  sparse_matrix A = load_sparse_matrix(params.matrix_file, params.num_blocks);
 
   init_matrix_ecc(A);
 
-  double *b = malloc(N*sizeof(double));
-  double *x = malloc(N*sizeof(double));
-  double *r = malloc(N*sizeof(double));
-  double *p = malloc(N*sizeof(double));
-  double *w = malloc(N*sizeof(double));
+  double *b = malloc(A.N*sizeof(double));
+  double *x = malloc(A.N*sizeof(double));
+  double *r = malloc(A.N*sizeof(double));
+  double *p = malloc(A.N*sizeof(double));
+  double *w = malloc(A.N*sizeof(double));
 
   // Initialize vectors b and x
-  for (unsigned y = 0; y < N; y++)
+  for (unsigned y = 0; y < A.N; y++)
   {
     b[y] = rand() / (double)RAND_MAX;
     x[y] = 0.0;
   }
 
   printf("\n");
-  int block_size = N/params.num_blocks;
-  printf("matrix size           = %u x %u\n", N, N);
+  int block_size = A.N/params.num_blocks;
+  printf("matrix size           = %u x %u\n", A.N, A.N);
   printf("matrix block size     = %u x %u\n", block_size, block_size);
   printf("number of non-zeros   = %u (%.4f%%)\n",
-         A.nnz, A.nnz/((double)N*(double)N)*100);
+         A.nnz, A.nnz/((double)A.N*(double)A.N)*100);
   printf("maximum iterations    = %u\n", params.max_itrs);
   printf("convergence threshold = %g\n", params.conv_threshold);
   printf("\n");
@@ -81,15 +79,15 @@ int main(int argc, char *argv[])
 
   // r = b - Ax;
   // p = r
-  spmv(A, x, r, N);
-  for (unsigned i = 0; i < N; i++)
+  spmv(A, x, r, A.N);
+  for (unsigned i = 0; i < A.N; i++)
   {
     p[i] = r[i] = b[i] - r[i];
   }
 
   // rr = rT * r
   double rr = 0.0;
-  for (unsigned i = 0; i < N; i++)
+  for (unsigned i = 0; i < A.N; i++)
   {
     rr += r[i] * r[i];
   }
@@ -98,11 +96,11 @@ int main(int argc, char *argv[])
   for (; itr < params.max_itrs && rr > params.conv_threshold; itr++)
   {
     // w = A*p
-    spmv(A, p, w, N);
+    spmv(A, p, w, A.N);
 
     // pw = pT * A*p
     double pw = 0.0;
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < A.N; i++)
     {
       pw += p[i] * w[i];
     }
@@ -113,7 +111,7 @@ int main(int argc, char *argv[])
     // r = r - alpha * A*p
     // rr_new = rT * r
     double rr_new = 0.0;
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < A.N; i++)
     {
       x[i] += alpha * p[i];
       r[i] -= alpha * w[i];
@@ -124,7 +122,7 @@ int main(int argc, char *argv[])
     double beta = rr_new / rr;
 
     // p = r + beta * p
-    for (unsigned  i = 0; i < N; i++)
+    for (unsigned  i = 0; i < A.N; i++)
     {
       p[i] = r[i] + beta*p[i];
     }
@@ -143,13 +141,13 @@ int main(int argc, char *argv[])
   printf("\ntime taken = %7.2lf ms\n\n", (end-start)*1e-3);
 
   // Compute Ax
-  double *Ax = malloc(N*sizeof(double));
-  spmv(A, x, Ax, N);
+  double *Ax = malloc(A.N*sizeof(double));
+  spmv(A, x, Ax, A.N);
 
   // Compare Ax to b
   double err_sq = 0.0;
   double max_err = 0.0;
-  for (unsigned i = 0; i < N; i++)
+  for (unsigned i = 0; i < A.N; i++)
   {
     double err = fabs(b[i] - Ax[i]);
     err_sq += err*err;
@@ -293,93 +291,4 @@ void parse_arguments(int argc, char *argv[])
       exit(1);
     }
   }
-}
-
-int compare_matrix_elements(const void *a, const void *b)
-{
-  matrix_entry _a = *(matrix_entry*)a;
-  matrix_entry _b = *(matrix_entry*)b;
-
-  if (_a.row < _b.row)
-  {
-    return -1;
-  }
-  else if (_a.row > _b.row)
-  {
-    return 1;
-  }
-  else
-  {
-    return _a.col - _b.col;
-  }
-}
-
-// Load a sparse matrix from a matrix-market format file
-sparse_matrix load_sparse_matrix(int *N)
-{
-  sparse_matrix M = {0, NULL};
-
-  FILE *file = fopen(params.matrix_file, "r");
-  if (file == NULL)
-  {
-    printf("Failed to open '%s'\n", params.matrix_file);
-    exit(1);
-  }
-
-  int width, height, nnz;
-  mm_read_mtx_crd_size(file, &width, &height, &nnz);
-  if (width != height)
-  {
-    printf("Matrix is not square\n");
-    exit(1);
-  }
-
-  M.nnz = 0;
-  M.elements = malloc(params.num_blocks*2*nnz*sizeof(matrix_entry));
-  for (int i = 0; i < nnz; i++)
-  {
-    matrix_entry element;
-
-    int col, row;
-
-    if (fscanf(file, "%d %d %lg\n", &col, &row, &element.value) != 3)
-    {
-      printf("Failed to read matrix data\n");
-      exit(1);
-    }
-    col--; /* adjust from 1-based to 0-based */
-    row--;
-
-    element.col = col;
-    element.row = row;
-    M.elements[M.nnz] = element;
-    M.nnz++;
-
-    if (element.col == element.row)
-      continue;
-
-    element.row = col;
-    element.col = row;
-    M.elements[M.nnz] = element;
-    M.nnz++;
-  }
-
-  qsort(M.elements, M.nnz, sizeof(matrix_entry), compare_matrix_elements);
-
-  nnz = M.nnz;
-  for (int j = 1; j < params.num_blocks; j++)
-  {
-    for (int i = 0; i < nnz; i++)
-    {
-      matrix_entry element = M.elements[i];
-      element.col = element.col + j*width;
-      element.row = element.row + j*height;
-      M.elements[M.nnz] = element;
-      M.nnz++;
-    }
-  }
-
-  *N = width*params.num_blocks;
-
-  return M;
 }
