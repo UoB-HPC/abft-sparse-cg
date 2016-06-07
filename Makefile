@@ -48,6 +48,10 @@ $(eval $(call CSR_EXE, cg-csr-c-sec7, CSR/c/spmv-sec7.o))
 $(eval $(call CSR_EXE, cg-csr-c-sec8, CSR/c/spmv-sec8.o))
 $(eval $(call CSR_EXE, cg-csr-c-secded, CSR/c/spmv-secded.o))
 
+ifneq (,$(findstring armv7,$(ARCH)))
+  $(eval $(call CSR_EXE, cg-csr-arm32-sed, CSR/arm32/spmv-sed.o))
+endif
+
 
 all: $(EXES)
 
