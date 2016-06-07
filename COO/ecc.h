@@ -1,3 +1,6 @@
+#ifndef ECC_H
+#define ECC_H
+
 #include <stdio.h>
 
 #include "common.h"
@@ -37,6 +40,16 @@
 #define ECC7_P7_2 0xFFFFFFFE
 #define ECC7_P7_3 0xFFFFFFFF
 
+// This function will generate/check the 7 parity bits for the given matrix
+// element, with the parity bits stored in the high order bits of the column
+// index.
+//
+// This will return a 32-bit integer where the high 7 bits are the generated
+// parity bits.
+//
+// To check a matrix element for errors, simply use this function again, and
+// the returned value will be the error 'syndrome' which will be non-zero if
+// an error occured.
 uint32_t ecc_compute_col8(matrix_entry element)
 {
   uint32_t *data = (uint32_t*)&element;
@@ -81,12 +94,15 @@ static int is_power_of_2(uint32_t x)
   return ((x != 0) && !(x & (x - 1)));
 }
 
+// Compute the overall parity of a 128-bit matrix element
 uint32_t ecc_compute_overall_parity(matrix_entry element)
 {
   uint32_t *data = (uint32_t*)&element;
   return __builtin_parity(data[0] ^ data[1] ^ data[2] ^ data[3]);
 }
 
+// This function will use the error 'syndrome' generated from a 7-bit parity
+// check to determine the index of the bit that has been flipped
 uint32_t ecc_get_flipped_bit_col8(uint32_t syndrome)
 {
   // Compute position of flipped bit
@@ -140,3 +156,5 @@ void gen_ecc7_masks()
     printf("\n");
   }
 }
+
+#endif // ECC_H

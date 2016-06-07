@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "../common.h"
+#include "../ecc.h"
 
 // Initialize ECC for a sparse matrix
 void init_matrix_ecc(sparse_matrix M)

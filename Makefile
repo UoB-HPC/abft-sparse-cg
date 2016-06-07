@@ -3,7 +3,7 @@ CFLAGS  = -std=c99 -O3 -Wall -g
 LDFLAGS = -lm
 
 EXES =
-COMMON_OBJS = COO/ecc.o cg.o mmio.o
+COMMON_OBJS = cg.o mmio.o
 
 all:
 	make -C matrices
@@ -11,6 +11,7 @@ all:
 define COO_EXE
 $(1): $(2) $(COMMON_OBJS)
 	$(CC) $$^ -o $$@ $(LDFLAGS)
+$(2): COO/common.h COO/ecc.h
 EXES += $(1)
 endef
 

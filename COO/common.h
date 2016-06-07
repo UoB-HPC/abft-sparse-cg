@@ -1,3 +1,6 @@
+#ifndef COMMON_H
+#define COMMON_H
+
 #include <stdint.h>
 
 // 128-bit matrix element
@@ -29,21 +32,4 @@ void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N);
 // Flip a specific bit in a matrix element
 void flip_bit(matrix_entry* element, uint32_t bit);
 
-// This function will generate/check the 7 parity bits for the given matrix
-// element, with the parity bits stored in the high order bits of the column
-// index.
-//
-// This will return a 32-bit integer where the high 7 bits are the generated
-// parity bits.
-//
-// To check a matrix element for errors, simply use this function again, and
-// the returned value will be the error 'syndrome' which will be non-zero if
-// an error occured.
-uint32_t ecc_compute_col8(matrix_entry element);
-
-// This function will use the error 'syndrome' generated from a 7-bit parity
-// check to determine the index of the bit that has been flipped
-uint32_t ecc_get_flipped_bit_col8(uint32_t syndrome);
-
-// Compute the overall parity of a 128-bit matrix element
-uint32_t ecc_compute_overall_parity(matrix_entry element);
+#endif // COMMON_H
