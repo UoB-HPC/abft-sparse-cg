@@ -280,7 +280,8 @@ void parse_arguments(int argc, char *argv[])
     else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
     {
       printf("\n");
-      printf("Usage: ./cg [OPTIONS]\n\n");
+      const char *exe = strrchr(argv[0], '/');
+      printf("Usage: %s [OPTIONS]\n\n", exe ? exe+1 : argv[0]);
       printf("Options:\n");
       printf(
         "  -h  --help                 Print this message\n"
