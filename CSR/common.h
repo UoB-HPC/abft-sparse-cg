@@ -3,17 +3,6 @@
 
 #include <stdint.h>
 
-// 128-bit matrix element
-// Bits  0 to  31 are the colum index
-// Bits 32 to  63 are the row index
-// Bits 64 to 127 are the floating point value
-typedef struct
-{
-  uint32_t col;
-  uint32_t row;
-  double value;
-} matrix_entry;
-
 typedef struct
 {
   double value;
