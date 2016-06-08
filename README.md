@@ -30,6 +30,9 @@ and `scheme` is	one of
 - `sec8`
 - `secded`
 
+Running	`make test` will perform a quick sanity	check on each
+executable that is produced.
+
 # Running
 
     Usage: cg-coo-c-baseline [OPTIONS]
