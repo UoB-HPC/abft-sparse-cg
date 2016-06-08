@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 
   // r = b - Ax;
   // p = r
-  spmv(A, x, r, A.N);
+  spmv(A, x, r);
   for (unsigned i = 0; i < A.N; i++)
   {
     p[i] = r[i] = b[i] - r[i];
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
   for (; itr < params.max_itrs && rr > params.conv_threshold; itr++)
   {
     // w = A*p
-    spmv(A, p, w, A.N);
+    spmv(A, p, w);
 
     // pw = pT * A*p
     double pw = 0.0;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
   // Compute Ax
   double *Ax = malloc(A.N*sizeof(double));
-  spmv(A, x, Ax, A.N);
+  spmv(A, x, Ax);
 
   // Compare Ax to b
   double err_sq = 0.0;

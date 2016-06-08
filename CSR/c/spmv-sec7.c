@@ -22,10 +22,9 @@ void init_matrix_ecc(sparse_matrix M)
 
 // Sparse matrix vector product
 // Multiplies `matrix` by `vector` and stores answer in `result`
-// The matrix and vector dimensions are `N`
-void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N)
+void spmv(sparse_matrix matrix, double *vector, double *result)
 {
-  for (unsigned row = 0; row < N; row++)
+  for (unsigned row = 0; row < matrix.N; row++)
   {
     double tmp = 0.0;
 

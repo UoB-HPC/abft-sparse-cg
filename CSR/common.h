@@ -25,7 +25,7 @@ void init_matrix_ecc(sparse_matrix M);
 
 // Sparse matrix-vector product
 // Defined in the relevant spmv-*.c file
-void spmv(sparse_matrix matrix, double *vector, double *result, unsigned N);
+void spmv(sparse_matrix matrix, double *vector, double *result);
 
 // Flip a specific bit in a matrix element
 void flip_bit(csr_colval* element, uint32_t bit);
