@@ -3,7 +3,7 @@ CFLAGS  = -std=gnu99 -O3 -Wall -g
 LDFLAGS = -lm
 
 EXES =
-COMMON_OBJS = cg.o mmio.o
+OBJS = mmio.o
 
 ARCH = $(shell uname -p)
 
@@ -21,6 +21,7 @@ $(1): $(2) cg-coo.o mmio.o COO/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
 $(2): COO/common.h COO/ecc.h
 EXES += $(1)
+OBJS += $(2)
 endef
 
 $(eval $(call COO_EXE, cg-coo-c-baseline, COO/c/spmv-baseline.o))
@@ -40,6 +41,7 @@ $(1): $(2) cg-csr.o mmio.o CSR/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
 $(2): CSR/common.h CSR/ecc.h
 EXES += $(1)
+OBJS += $(2)
 endef
 
 $(eval $(call CSR_EXE, cg-csr-c-baseline, CSR/c/spmv-baseline.o))
@@ -62,6 +64,6 @@ test: $(EXES)
 	done \
 
 clean:
-	rm -f $(EXES) mmio.o cg-coo.o cg-coo.o COO/common.o CSR/common.o
+	rm -f $(EXES) $(OBJS) cg-coo.o cg-csr.o COO/common.o CSR/common.o
 
 .PHONY: clean test
