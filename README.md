@@ -12,6 +12,24 @@ Running `make` in the top-level directory will build all the
 implementation variants and also download a test matrix to use as
 input data.
 
+The executables built will be named in the form:
+
+    cg-[coo|csr]-[impl]-[scheme]
+
+Where `impl` is	one of	
+
+- `c`
+- `arm32`
+
+and `scheme` is	one of
+
+- `baseline`
+- `constraints`
+- `sed`
+- `sec7`
+- `sec8`
+- `secded`
+
 # Running
 
     Usage: cg-coo-c-baseline [OPTIONS]
