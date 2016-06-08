@@ -55,7 +55,13 @@ endif
 
 all: $(EXES)
 
+test: $(EXES)
+	for exe in $(EXES); do \
+	  ./$$exe -b 5 >/dev/null ; \
+		if [ $$? -ne 0 ]; then echo "FAILED $$exe"; else echo "passed $$exe"; fi ; \
+	done \
+
 clean:
 	rm -f $(EXES) mmio.o cg-coo.o cg-coo.o COO/common.o CSR/common.o
 
-.PHONY: clean
+.PHONY: clean test
