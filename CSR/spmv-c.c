@@ -24,8 +24,47 @@ static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 
 static void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
 {
-  printf("spmv_constraints not implemented\n");
-  exit(1);
+  for (unsigned row = 0; row < matrix.N; row++)
+  {
+    double tmp = 0.0;
+
+    uint32_t start = matrix.rows[row];
+    uint32_t end   = matrix.rows[row+1];
+
+    if (end > matrix.nnz)
+    {
+      printf("row size constraint violated for row %d\n", row);
+      exit(1);
+    }
+    if (end < start)
+    {
+      printf("row order constraint violated for row%d\n", row);
+      exit(1);
+    }
+
+    for (uint32_t i = start; i < end; i++)
+    {
+      uint32_t col = matrix.cols[i];
+
+      if (col >= matrix.N)
+      {
+        printf("column size constraint violated at index %d\n", i);
+        exit(1);
+      }
+      if (i < end-1)
+      {
+        if (matrix.cols[i+1] <= col)
+        {
+          printf("column order constraint violated at index %d\n", i);
+          exit(1);
+        }
+      }
+
+      tmp += matrix.values[i] * vector[col];
+    }
+
+    result[row] = tmp;
+  }
 }
 
 static void spmv_sed(sparse_matrix matrix, double *vector, double *result)
