@@ -16,6 +16,8 @@ cg-csr.o: cg.c CSR/common.h
 
 
 COO_OBJS = cg-coo.o COO/common.o mmio.o
+COO/common.o: COO/common.h
+
 define COO_EXE
 $(1): $(2) cg-coo.o mmio.o COO/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
@@ -37,6 +39,8 @@ endif
 
 
 CSR_OBJS = cg-csr.o CSR/common.o mmio.o
+CSR/common.o: CSR/common.h
+
 define CSR_EXE
 $(1): $(2) cg-csr.o mmio.o CSR/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
