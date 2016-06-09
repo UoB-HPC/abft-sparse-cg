@@ -291,11 +291,12 @@ void parse_arguments(int argc, char *argv[])
         i++;
         if (!strcmp(argv[i], "INDEX"))
         {
-          params.bitflip_region_start = 0;
 #if COO
+          params.bitflip_region_start = 0;
           params.bitflip_region_end   = 64;
 #elif CSR
-          params.bitflip_region_end   = 32;
+          params.bitflip_region_start = 64;
+          params.bitflip_region_end   = 96;
 #endif
         }
         else if (!strcmp(argv[i], "VALUE"))
@@ -304,8 +305,8 @@ void parse_arguments(int argc, char *argv[])
           params.bitflip_region_start = 64;
           params.bitflip_region_end   = 128;
 #elif CSR
-          params.bitflip_region_start = 32;
-          params.bitflip_region_end   = 96;
+          params.bitflip_region_start = 0;
+          params.bitflip_region_end   = 64;
 #endif
         }
         else if ((params.num_bit_flips = parse_int(argv[i])) < 1)
