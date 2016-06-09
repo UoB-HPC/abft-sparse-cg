@@ -9,42 +9,41 @@ are provided.
 # Building
 
 Running `make` in the top-level directory will build all the
-implementation variants and also download a test matrix to use as
-input data.
+implementation and also download a test matrix to use as input data.
 
 The executables built will be named in the form:
 
-    cg-[coo|csr]-[impl]-[scheme]
+    cg-[coo|csr]-[impl]
 
-Where `impl` is	one of	
+Where `impl` is	one of
 
 - `c`
 - `arm32`
 
-and `scheme` is	one of
-
-- `baseline`
-- `constraints`
-- `sed`
-- `sec7`
-- `sec8`
-- `secded`
-
-Running	`make test` will perform a quick sanity	check on each
+Running `make test` will perform some quick sanity check on each
 executable that is produced.
 
 # Running
 
-    Usage: cg-coo-c-baseline [OPTIONS]
+    Usage: cg-coo-c [OPTIONS]
 
     Options:
-      -h  --help                 Print this message
-      -b  --num-blocks      B    Number of times to block input matrix
-      -c  --convergence     C    Convergence threshold
-      -i  --iterations      I    Maximum number of iterations
-      -m  --matrix-file     M    Path to matrix-market format file
-      -p  --percent-nzero   P    Percentage of A to be non-zero (approx)
-      -x  --inject-bitflip       Inject a random bit-flip into A
+      -h  --help                  Print this message
+      -b  --num-blocks      B     Number of times to block input matrix
+      -c  --convergence     C     Convergence threshold
+      -f  --matrix-file     M     Path to matrix-market format file
+      -i  --iterations      I     Maximum number of iterations
+      -m  --mode            MODE  ABFT mode
+      -x  --inject-bitflip        Inject a random bit-flip into A
+
+      The -m|--mode argument controls which scheme to use for protecting
+      the sparse matrix data. The available options are:
+        - NONE (default)
+        - CONSTRAINTS
+        - SED
+        - SEC7
+        - SEC8
+        - SECDED
 
       The -x|--inject-bitflip argument optionally takes a number to
       control how many bits to flip, and either INDEX or VALUE to
