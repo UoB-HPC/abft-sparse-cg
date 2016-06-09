@@ -30,10 +30,6 @@ typedef struct
 } sparse_matrix;
 
 
-// Initialize ECC for a sparse matrix
-// Defined in the relevant spmv-*.c file
-void init_matrix_ecc(sparse_matrix M);
-
 // Sparse matrix-vector product
 // Defined in the relevant spmv-*.c file
 void spmv(sparse_matrix matrix, double *vector, double *result);
