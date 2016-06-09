@@ -50,19 +50,19 @@ static uint8_t PARITY_TABLE[256] =
   1, 0, 0, 1, 0, 1, 1, 0,
 };
 
-void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
+static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_baseline not implemented\n");
   exit(1);
 }
 
-void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
+static void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_constraints not implemented\n");
   exit(1);
 }
 
-void spmv_sed(sparse_matrix matrix, double *vector, double *result)
+static void __attribute__((noinline)) spmv_sed(sparse_matrix matrix, double *vector, double *result)
 {
   asm goto(
     // Compute pointer to end of data
@@ -127,7 +127,7 @@ void spmv_sed(sparse_matrix matrix, double *vector, double *result)
       [ep] "r" (matrix.elements),
       [vector] "r" (vector),
       [nnz] "r" (matrix.nnz)
-    : "cc", "r0", "r1", "r2", "r3", "r4", "r5", "lr", "d5", "d6", "d7", "memory"
+    : "cc", "r0", "r1", "r2", "r4", "r5", "lr", "d5", "d6", "d7", "memory"
     : ERROR
     );
 
@@ -139,19 +139,19 @@ ERROR:
   exit(1);
 }
 
-void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_sec7 not implemented\n");
   exit(1);
 }
 
-void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_sec8 not implemented\n");
   exit(1);
 }
 
-void spmv_secded(sparse_matrix matrix, double *vector, double *result)
+static void spmv_secded(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_secded not implemented\n");
   exit(1);

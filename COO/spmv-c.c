@@ -4,7 +4,7 @@
 #include "common.h"
 #include "ecc.h"
 
-void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
+static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)
@@ -18,7 +18,7 @@ void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
   }
 }
 
-void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
+static void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)
@@ -55,7 +55,7 @@ void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
   }
 }
 
-void spmv_sed(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sed(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)
@@ -79,7 +79,7 @@ void spmv_sed(sparse_matrix matrix, double *vector, double *result)
   }
 }
 
-void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)
@@ -108,7 +108,7 @@ void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
   }
 }
 
-void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)
@@ -148,7 +148,7 @@ void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
   }
 }
 
-void spmv_secded(sparse_matrix matrix, double *vector, double *result)
+static void spmv_secded(sparse_matrix matrix, double *vector, double *result)
 {
   // Loop over non-zeros in matrix
   for (unsigned i = 0; i < matrix.nnz; i++)

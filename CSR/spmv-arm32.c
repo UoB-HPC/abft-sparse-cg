@@ -4,19 +4,19 @@
 #include "common.h"
 #include "ecc.h"
 
-void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
+static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_baseline not implemented\n");
   exit(1);
 }
 
-void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
+static void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_constraints not implemented\n");
   exit(1);
 }
 
-void spmv_sed(sparse_matrix matrix, double *vector, double *result)
+static void __attribute__((noinline)) spmv_sed(sparse_matrix matrix, double *vector, double *result)
 {
   double zero = 0.0;
   for (unsigned row = 0; row < matrix.N; row++)
@@ -96,19 +96,19 @@ ERROR:
   exit(1);
 }
 
-void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_sec7 not implemented\n");
   exit(1);
 }
 
-void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
+static void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_sec8 not implemented\n");
   exit(1);
 }
 
-void spmv_secded(sparse_matrix matrix, double *vector, double *result)
+static void spmv_secded(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_secded not implemented\n");
   exit(1);
