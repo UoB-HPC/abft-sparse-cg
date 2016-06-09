@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "common.h"
+#include "ecc.h"
 
 #include "../mmio.h"
 
@@ -31,7 +32,8 @@ int compare_matrix_elements(const void *a, const void *b)
   }
 }
 
-sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks)
+sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks,
+                                 abft_mode mode)
 {
   sparse_matrix M = {0};
 
@@ -111,6 +113,36 @@ sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks)
   free(elements);
 
   M.N = width*num_blocks;
+  M.mode = mode;
+
+  // Initialize ECC bits
+  for (int i = 0; i < M.nnz; i++)
+  {
+    csr_colval colval;
+    colval.column = M.cols[i];
+    colval.value = M.values[i];
+
+    switch (mode)
+    {
+    case NONE:
+    case CONSTRAINTS:
+      break;
+    case SED:
+      colval.column |= ecc_compute_overall_parity(colval) << 31;
+      break;
+    case SEC7:
+      colval.column |= ecc_compute_col8(colval);
+      break;
+    case SEC8:
+    case SECDED:
+      colval.column |= ecc_compute_col8(colval);
+      colval.column |= ecc_compute_overall_parity(colval) << 24;
+      break;
+    }
+
+    M.cols[i] = colval.column;
+    M.values[i] = colval.value;
+  }
 
   return M;
 }

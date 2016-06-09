@@ -24,6 +24,8 @@ struct
   double conv_threshold; // convergence threshold to stop CG
   const char *matrix_file;
 
+  abft_mode mode;
+
   int    num_bit_flips;        // number of bits to flip in a matrix element
   int    bitflip_region_start; // start of region in matrix element to bit-flip
   int    bitflip_region_end;   // end of region in matrix element to bit-flip
@@ -37,9 +39,8 @@ int main(int argc, char *argv[])
 {
   parse_arguments(argc, argv);
 
-  sparse_matrix A = load_sparse_matrix(params.matrix_file, params.num_blocks);
-
-  init_matrix_ecc(A);
+  sparse_matrix A = load_sparse_matrix(params.matrix_file,
+                                       params.num_blocks, params.mode);
 
   double *b = malloc(A.N*sizeof(double));
   double *x = malloc(A.N*sizeof(double));
@@ -62,6 +63,7 @@ int main(int argc, char *argv[])
          A.nnz, A.nnz/((double)A.N*(double)A.N)*100);
   printf("maximum iterations    = %u\n", params.max_itrs);
   printf("convergence threshold = %g\n", params.conv_threshold);
+  // TODO: Print ABFT mode
   printf("\n");
 
   if (params.num_bit_flips)
@@ -218,6 +220,7 @@ void parse_arguments(int argc, char *argv[])
 
   params.num_blocks = 25;
   params.matrix_file = "matrices/shallow_water1/shallow_water1.mtx";
+  params.mode = NONE;
 
   for (int i = 1; i < argc; i++)
   {
@@ -245,7 +248,7 @@ void parse_arguments(int argc, char *argv[])
         exit(1);
       }
     }
-    else if (!strcmp(argv[i], "--matrix-file") || !strcmp(argv[i], "-m"))
+    else if (!strcmp(argv[i], "--matrix-file") || !strcmp(argv[i], "-f"))
     {
       if (++i >= argc)
       {
@@ -253,6 +256,32 @@ void parse_arguments(int argc, char *argv[])
         exit(1);
       }
       params.matrix_file = argv[i];
+    }
+    else if (!strcmp(argv[i], "--mode") || !strcmp(argv[i], "-m"))
+    {
+      if (++i >= argc)
+      {
+        printf("ABFT mode required\n");
+        exit(1);
+      }
+
+      if (!strcmp(argv[i], "NONE"))
+        params.mode = NONE;
+      else if (!strcmp(argv[i], "CONSTRAINTS"))
+        params.mode = CONSTRAINTS;
+      else if (!strcmp(argv[i], "SED"))
+        params.mode = SED;
+      else if (!strcmp(argv[i], "SEC7"))
+        params.mode = SEC7;
+      else if (!strcmp(argv[i], "SEC8"))
+        params.mode = SEC8;
+      else if (!strcmp(argv[i], "SECDED"))
+        params.mode = SECDED;
+      else
+      {
+        printf("Invalid ABFT mode\n");
+        exit(1);
+      }
     }
     else if (!strcmp(argv[i], "--inject-bitflip") || !strcmp(argv[i], "-x"))
     {
@@ -293,13 +322,22 @@ void parse_arguments(int argc, char *argv[])
       printf("Usage: %s [OPTIONS]\n\n", exe ? exe+1 : argv[0]);
       printf("Options:\n");
       printf(
-        "  -h  --help                 Print this message\n"
-        "  -b  --num-blocks      B    Number of times to block input matrix\n"
-        "  -c  --convergence     C    Convergence threshold\n"
-        "  -i  --iterations      I    Maximum number of iterations\n"
-        "  -m  --matrix-file     M    Path to matrix-market format file\n"
-        "  -p  --percent-nzero   P    Percentage of A to be non-zero (approx)\n"
-        "  -x  --inject-bitflip       Inject a random bit-flip into A\n"
+        "  -h  --help                  Print this message\n"
+        "  -b  --num-blocks      B     Number of times to block input matrix\n"
+        "  -c  --convergence     C     Convergence threshold\n"
+        "  -f  --matrix-file     M     Path to matrix-market format file\n"
+        "  -i  --iterations      I     Maximum number of iterations\n"
+        "  -m  --mode            MODE  ABFT mode\n"
+        "  -x  --inject-bitflip        Inject a random bit-flip into A\n"
+        "\n"
+        "  The -m|--mode argument controls which scheme to use for protecting\n"
+        "  the sparse matrix data. The available options are:\n"
+        "    - NONE (default)\n"
+        "    - CONSTRAINTS\n"
+        "    - SED\n"
+        "    - SEC7\n"
+        "    - SEC8\n"
+        "    - SECDED\n"
         "\n"
         "  The -x|--inject-bitflip argument optionally takes a number to \n"
         "  control how many bits to flip, and either INDEX or VALUE to \n"

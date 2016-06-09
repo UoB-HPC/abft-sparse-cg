@@ -3,6 +3,16 @@
 
 #include <stdint.h>
 
+typedef enum
+{
+  NONE,
+  CONSTRAINTS,
+  SED,
+  SEC7,
+  SEC8,
+  SECDED,
+} abft_mode;
+
 // 128-bit matrix element
 // Bits  0 to  31 are the colum index
 // Bits 32 to  63 are the row index
@@ -18,6 +28,7 @@ typedef struct
 {
   unsigned N;
   unsigned nnz;
+  abft_mode mode;
   matrix_entry *elements;
 } sparse_matrix;
 
@@ -34,6 +45,7 @@ void spmv(sparse_matrix matrix, double *vector, double *result);
 void flip_bit(matrix_entry* element, uint32_t bit);
 
 // Load a sparse matrix from a matrix-market format file
-sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks);
+sparse_matrix load_sparse_matrix(const char *matrix_file, int num_blocks,
+                                 abft_mode mode);
 
 #endif // COMMON_H

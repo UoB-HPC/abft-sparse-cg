@@ -1,29 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../common.h"
-#include "../ecc.h"
+#include "common.h"
+#include "ecc.h"
 
-// Initialize ECC for a sparse matrix
-void init_matrix_ecc(sparse_matrix M)
+void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
-  // Add ECC protection to matrix elements
-  for (unsigned i = 0; i < M.nnz; i++)
-  {
-    csr_colval colval;
-    colval.value = M.values[i];
-    colval.column = M.cols[i];
-
-    // Compute overall parity bit for whole codeword
-    colval.column |= ecc_compute_overall_parity(colval) << 31;
-
-    M.cols[i] = colval.column;
-  }
+  printf("spmv_baseline not implemented\n");
+  exit(1);
 }
 
-// Sparse matrix vector product
-// Multiplies `matrix` by `vector` and stores answer in `result`
-void spmv(sparse_matrix matrix, double *vector, double *result)
+void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_constraints not implemented\n");
+  exit(1);
+}
+
+void spmv_sed(sparse_matrix matrix, double *vector, double *result)
 {
   double zero = 0.0;
   for (unsigned row = 0; row < matrix.N; row++)
@@ -101,4 +94,47 @@ void spmv(sparse_matrix matrix, double *vector, double *result)
 ERROR:
   printf("[ECC] error detected at index (something)\n");
   exit(1);
+}
+
+void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_sec7 not implemented\n");
+  exit(1);
+}
+
+void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_sec8 not implemented\n");
+  exit(1);
+}
+
+void spmv_secded(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_secded not implemented\n");
+  exit(1);
+}
+
+void spmv(sparse_matrix matrix, double *vector, double *result)
+{
+  switch (matrix.mode)
+  {
+  case NONE:
+    spmv_baseline(matrix, vector, result);
+    break;
+  case CONSTRAINTS:
+    spmv_constraints(matrix, vector, result);
+    break;
+  case SED:
+    spmv_sed(matrix, vector, result);
+    break;
+  case SEC7:
+    spmv_sec7(matrix, vector, result);
+    break;
+  case SEC8:
+    spmv_sec8(matrix, vector, result);
+    break;
+  case SECDED:
+    spmv_secded(matrix, vector, result);
+    break;
+  }
 }

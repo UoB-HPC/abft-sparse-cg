@@ -26,15 +26,9 @@ COO_EXES += $(1)
 COO_OBJS += $(2)
 endef
 
-$(eval $(call COO_EXE, cg-coo-c-baseline, COO/c/spmv-baseline.o))
-$(eval $(call COO_EXE, cg-coo-c-constraints, COO/c/spmv-constraints.o))
-$(eval $(call COO_EXE, cg-coo-c-sed, COO/c/spmv-sed.o))
-$(eval $(call COO_EXE, cg-coo-c-sec7, COO/c/spmv-sec7.o))
-$(eval $(call COO_EXE, cg-coo-c-sec8, COO/c/spmv-sec8.o))
-$(eval $(call COO_EXE, cg-coo-c-secded, COO/c/spmv-secded.o))
-
+$(eval $(call COO_EXE, cg-coo-c, COO/spmv-c.o))
 ifneq (,$(findstring armv7,$(ARCH)))
-  $(eval $(call COO_EXE, cg-coo-arm32-sed, COO/arm32/spmv-sed.o))
+  $(eval $(call COO_EXE, cg-coo-arm32, COO/spmv-arm32.o))
 endif
 
 
@@ -49,14 +43,9 @@ CSR_EXES += $(1)
 CSR_OBJS += $(2)
 endef
 
-$(eval $(call CSR_EXE, cg-csr-c-baseline, CSR/c/spmv-baseline.o))
-$(eval $(call CSR_EXE, cg-csr-c-sed, CSR/c/spmv-sed.o))
-$(eval $(call CSR_EXE, cg-csr-c-sec7, CSR/c/spmv-sec7.o))
-$(eval $(call CSR_EXE, cg-csr-c-sec8, CSR/c/spmv-sec8.o))
-$(eval $(call CSR_EXE, cg-csr-c-secded, CSR/c/spmv-secded.o))
-
+$(eval $(call CSR_EXE, cg-csr-c, CSR/spmv-c.o))
 ifneq (,$(findstring armv7,$(ARCH)))
-  $(eval $(call CSR_EXE, cg-csr-arm32-sed, CSR/arm32/spmv-sed.o))
+  $(eval $(call CSR_EXE, cg-csr-arm32, CSR/spmv-arm32.o))
 endif
 
 

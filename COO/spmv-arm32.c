@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../common.h"
-#include "../ecc.h"
+#include "common.h"
+#include "ecc.h"
 
 #define USE_PARITYSI2 0
 #define USE_PARITY_TABLE 1
@@ -50,29 +50,20 @@ static uint8_t PARITY_TABLE[256] =
   1, 0, 0, 1, 0, 1, 1, 0,
 };
 
-// Initialize ECC for a sparse matrix
-void init_matrix_ecc(sparse_matrix M)
+void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
-  // Add ECC protection to matrix elements
-  for (unsigned i = 0; i < M.nnz; i++)
-  {
-    matrix_entry element = M.elements[i];
-
-    // Compute overall parity bit for whole codeword
-    element.col |= ecc_compute_overall_parity(element) << 31;
-
-    M.elements[i] = element;
-  }
+  printf("spmv_baseline not implemented\n");
+  exit(1);
 }
 
-// Sparse matrix vector product
-// Multiplies `matrix` by `vector` and stores answer in `result`
-void spmv(sparse_matrix matrix, double *vector, double *result)
+void spmv_constraints(sparse_matrix matrix, double *vector, double *result)
 {
-  // Initialize result vector to zero
-  for (unsigned i = 0; i < matrix.N; i++)
-    result[i] = 0.0;
+  printf("spmv_constraints not implemented\n");
+  exit(1);
+}
 
+void spmv_sed(sparse_matrix matrix, double *vector, double *result)
+{
   asm goto(
     // Compute pointer to end of data
     "add     r5, %[ep], %[nnz], lsl #4\n"
@@ -146,4 +137,53 @@ ERROR:
   // TODO: Print actual index
   printf("[ECC] error detected at index (something)\n");
   exit(1);
+}
+
+void spmv_sec7(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_sec7 not implemented\n");
+  exit(1);
+}
+
+void spmv_sec8(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_sec8 not implemented\n");
+  exit(1);
+}
+
+void spmv_secded(sparse_matrix matrix, double *vector, double *result)
+{
+  printf("spmv_secded not implemented\n");
+  exit(1);
+}
+
+// Sparse matrix vector product
+// Multiplies `matrix` by `vector` and stores answer in `result`
+void spmv(sparse_matrix matrix, double *vector, double *result)
+{
+  // Initialize result vector to zero
+  for (unsigned i = 0; i < matrix.N; i++)
+    result[i] = 0.0;
+
+  switch (matrix.mode)
+  {
+  case NONE:
+    spmv_baseline(matrix, vector, result);
+    break;
+  case CONSTRAINTS:
+    spmv_constraints(matrix, vector, result);
+    break;
+  case SED:
+    spmv_sed(matrix, vector, result);
+    break;
+  case SEC7:
+    spmv_sec7(matrix, vector, result);
+    break;
+  case SEC8:
+    spmv_sec8(matrix, vector, result);
+    break;
+  case SECDED:
+    spmv_secded(matrix, vector, result);
+    break;
+  }
 }
