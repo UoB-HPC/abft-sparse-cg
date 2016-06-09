@@ -52,8 +52,18 @@ endif
 coo: $(COO_EXES)
 csr: $(CSR_EXES)
 
-test: coo csr
-	for exe in $(COO_EXES) $(CSR_EXES); do ./run_tests ./$$exe ; done
+BENCHMARK_SIZE=10
+benchmark: benchmark-coo benchmark-csr
+benchmark-coo:
+	for exe in $(COO_EXES); do ./run_benchmark ./$$exe -b $(BENCHMARK_SIZE); done
+benchmark-csr:
+	for exe in $(CSR_EXES); do ./run_benchmark ./$$exe -b $(BENCHMARK_SIZE); done
+
+test: test-coo test-csr
+test-coo:
+	for exe in $(COO_EXES); do ./run_tests ./$$exe ; done
+test-csr:
+	for exe in $(CSR_EXES); do ./run_tests ./$$exe ; done
 
 clean:
 	rm -f $(COO_EXES) $(CSR_EXES) $(COO_OBJS) $(CSR_OBJS) mmio.o

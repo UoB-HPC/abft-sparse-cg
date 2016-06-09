@@ -14,9 +14,9 @@ do
   do
     $* -m $mode | grep 'time taken'
   done | \
-    awk 'BEGIN { min=9999 }
+    awk 'BEGIN { min=999999 }
         { total+=$4; if($4<min){min=$4} if ($4>max){max=$4}}
-        END{ printf "%6.1f  (%6.1f / %6.1f)\n", total/NR, min, max;}'
+        END{ printf "%6.1f ms   ( %6.1f  /  %6.1f )\n", total/NR, min, max;}'
 done
 
 echo
