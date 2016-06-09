@@ -53,10 +53,7 @@ coo: $(COO_EXES)
 csr: $(CSR_EXES)
 
 test: coo csr
-	for exe in $(COO_EXES) $(CSR_EXES); do \
-	  ./$$exe -b 5 >/dev/null ; \
-		if [ $$? -ne 0 ]; then echo "FAILED $$exe"; else echo "passed $$exe"; fi ; \
-	done \
+	for exe in $(COO_EXES) $(CSR_EXES); do ./run_tests ./$$exe ; done
 
 clean:
 	rm -f $(COO_EXES) $(CSR_EXES) $(COO_OBJS) $(CSR_OBJS) mmio.o

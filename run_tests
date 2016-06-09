@@ -1,0 +1,52 @@
+#!/bin/bash
+
+EXE=$1
+ARGS="-b 4"
+
+# Test each mode without bitflips
+for mode in NONE CONSTRAINTS SED SEC7 SEC8 SECDED
+do
+  $EXE $ARGS -m $mode >/dev/null
+  if [ $? -eq 0 ]
+  then
+    echo "passed $EXE $mode"
+  else
+    echo "FAILED $EXE $mode"
+  fi
+done
+
+# Test modes with single-bit error detection with a single bit-flip
+for mode in SED
+do
+  $EXE $ARGS -m $mode -x | grep 'error detected at index' >/dev/null
+  if [ $? -eq 0 ]
+  then
+    echo "passed $EXE $mode -x"
+  else
+    echo "FAILED $EXE $mode -x"
+  fi
+done
+
+# Test modes with correction capabilities with a single bit-flip
+for mode in SEC7 SEC8 SECDED
+do
+  $EXE $ARGS -m $mode -x >/dev/null
+  if [ $? -eq 0 ]
+  then
+    echo "passed $EXE $mode -x"
+  else
+    echo "FAILED $EXE $mode -x"
+  fi
+done
+
+# Test modes with double-bit error detection with a double bit-flip
+for mode in SECDED
+do
+  $EXE $ARGS -m $mode -x 2 | grep 'double-bit error detected' >/dev/null
+  if [ $? -eq 0 ]
+  then
+    echo "passed $EXE $mode -x 2"
+  else
+    echo "FAILED $EXE $mode -x 2"
+  fi
+done
