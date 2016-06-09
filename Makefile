@@ -2,12 +2,11 @@ CC      = cc
 CFLAGS  = -std=gnu99 -O3 -Wall -g
 LDFLAGS = -lm
 
-EXES =
 OBJS = mmio.o
 
 ARCH = $(shell uname -p)
 
-all:
+all: coo csr
 	make -C matrices
 
 cg-coo.o: cg.c COO/common.h
@@ -16,12 +15,13 @@ cg-csr.o: cg.c CSR/common.h
 	$(CC) $(CFLAGS) -DCSR=1 -c $< -o $@
 
 
+COO_OBJS = cg-coo.o COO/common.o mmio.o
 define COO_EXE
 $(1): $(2) cg-coo.o mmio.o COO/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
 $(2): COO/common.h COO/ecc.h
-EXES += $(1)
-OBJS += $(2)
+COO_EXES += $(1)
+COO_OBJS += $(2)
 endef
 
 $(eval $(call COO_EXE, cg-coo-c-baseline, COO/c/spmv-baseline.o))
@@ -36,12 +36,13 @@ ifneq (,$(findstring armv7,$(ARCH)))
 endif
 
 
+CSR_OBJS = cg-csr.o CSR/common.o mmio.o
 define CSR_EXE
 $(1): $(2) cg-csr.o mmio.o CSR/common.o
 	$(CC) $$^ -o $$@ $(LDFLAGS)
 $(2): CSR/common.h CSR/ecc.h
-EXES += $(1)
-OBJS += $(2)
+CSR_EXES += $(1)
+CSR_OBJS += $(2)
 endef
 
 $(eval $(call CSR_EXE, cg-csr-c-baseline, CSR/c/spmv-baseline.o))
@@ -55,15 +56,16 @@ ifneq (,$(findstring armv7,$(ARCH)))
 endif
 
 
-all: $(EXES)
+coo: $(COO_EXES)
+csr: $(CSR_EXES)
 
-test: $(EXES)
-	for exe in $(EXES); do \
+test: coo csr
+	for exe in $(COO_EXES) $(CSR_EXES); do \
 	  ./$$exe -b 5 >/dev/null ; \
 		if [ $$? -ne 0 ]; then echo "FAILED $$exe"; else echo "passed $$exe"; fi ; \
 	done \
 
 clean:
-	rm -f $(EXES) $(OBJS) cg-coo.o cg-csr.o COO/common.o CSR/common.o
+	rm -f $(COO_EXES) $(CSR_EXES) $(COO_OBJS) $(CSR_OBJS) mmio.o
 
 .PHONY: clean test
