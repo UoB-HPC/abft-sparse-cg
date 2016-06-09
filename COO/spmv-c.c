@@ -26,6 +26,18 @@ static void spmv_constraints(sparse_matrix matrix, double *vector, double *resul
     // Load non-zero element
     matrix_entry element = matrix.elements[i];
 
+    // Check index size constraints
+    if (element.row >= matrix.N)
+    {
+      printf("row size constraint violated for index %d\n", i);
+      exit(1);
+    }
+    if (element.col >= matrix.N)
+    {
+      printf("column size constraint violated for index %d\n", i);
+      exit(1);
+    }
+
     // Check index order constraints
     // Skip last row
     if (i < matrix.nnz - 1)
