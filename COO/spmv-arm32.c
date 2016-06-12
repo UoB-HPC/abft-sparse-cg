@@ -11,6 +11,7 @@
 #error "Multiple implementations selected"
 #endif
 
+#if USE_PARITY_TABLE
 static uint8_t PARITY_TABLE[256] =
 {
   0, 1, 1, 0, 1, 0, 0, 1,
@@ -49,6 +50,7 @@ static uint8_t PARITY_TABLE[256] =
   0, 1, 1, 0, 1, 0, 0, 1,
   1, 0, 0, 1, 0, 1, 1, 0,
 };
+#endif
 
 static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
@@ -123,11 +125,17 @@ static void __attribute__((noinline)) spmv_sed(sparse_matrix matrix, double *vec
     "cmp     %[ep], r5\n\t"
     "bne     .LOOP_BODY\n"
     :
-    : [result] "r" (result), [PARITY_TABLE] "r" (PARITY_TABLE),
+    : [result] "r" (result),
       [ep] "r" (matrix.elements),
       [vector] "r" (vector),
       [nnz] "r" (matrix.nnz)
-    : "cc", "r0", "r1", "r2", "r4", "r5", "lr", "d5", "d6", "d7", "memory"
+#if USE_PARITY_TABLE
+      , [PARITY_TABLE] "r" (PARITY_TABLE)
+#endif
+    : "cc", "r0", "r1", "r2", "r4", "r5", "d5", "d6", "d7", "memory"
+#if USE_PARITYSI2
+      , "lr"
+#endif
     : ERROR
     );
 
