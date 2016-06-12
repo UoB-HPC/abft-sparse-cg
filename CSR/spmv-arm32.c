@@ -4,6 +4,54 @@
 #include "common.h"
 #include "ecc.h"
 
+#define USE_PARITYSI2 0
+#define USE_PARITY_TABLE 1
+
+#if USE_PARITYSI2 + USE_PARITY_TABLE > 1
+#error "Multiple implementations selected"
+#endif
+
+#if USE_PARITY_TABLE
+static uint8_t PARITY_TABLE[256] =
+{
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0,
+};
+#endif // USE_PARITY_TABLE
+
 static void spmv_baseline(sparse_matrix matrix, double *vector, double *result)
 {
   printf("spmv_baseline not implemented\n");
@@ -44,17 +92,31 @@ static void __attribute__((noinline)) spmv_sed(sparse_matrix matrix, double *vec
 
       // *** Parity check starts ***
       // Reduce data to 32-bits in r0
-      "vmov    r0, r1, d6\n\t"
+      "ldrd    r0, r1, [r1]\n\t"
       "eor     r0, r0, r1\n\t"
       "eor     r0, r0, r2\n\t"
 
+#if USE_PARITYSI2
+      // Use builtin to compute final parity
+      "bl      __paritysi2\n\t"
+#else
       // Compute final parity manually
       "eor     r0, r0, r0, lsr #16\n\t"
       "eor     r0, r0, r0, lsr #8\n\t"
-      "eor     r0, r0, r0, lsr #4\n\t"
-      "eor     r0, r0, r0, lsr #2\n\t"
-      "eor     r0, r0, r0, lsr #1\n\t"
-      "and     r0, r0, #0x1\n\t"
+
+#if USE_PARITY_TABLE
+    // Lookup final parity from table
+    "and     r0, r0, #0xFF\n\t"
+    "ldrB    r0, [%[PARITY_TABLE], r0]\n\t"
+#else
+    // Manually compute final parity
+    "eor     r0, r0, r0, lsr #4\n\t"
+    "eor     r0, r0, r0, lsr #2\n\t"
+    "eor     r0, r0, r0, lsr #1\n\t"
+    "and     r0, r0, #0x1\n\t"
+#endif // USE_PARITY_TABLE
+
+#endif // USE_PARITYSI2
 
       // Branch to .ERROR if parity fails
       "cbnz    r0, %l[ERROR]\n\t"
@@ -84,7 +146,13 @@ static void __attribute__((noinline)) spmv_sed(sparse_matrix matrix, double *vec
         [vecptr] "r" (vector),
         [resptr] "r" (result),
         [zero] "w" (zero)
+#if USE_PARITY_TABLE
+        , [PARITY_TABLE] "r" (PARITY_TABLE)
+#endif
       : "cc", "r0", "r1", "r2", "r5", "r6", "d5", "d6", "d7", "memory"
+#if USE_PARTIYSI2
+        , "lr"
+#endif
       : ERROR
       );
   }
