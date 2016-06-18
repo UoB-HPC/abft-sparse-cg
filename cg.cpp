@@ -235,6 +235,11 @@ void parse_arguments(int argc, char *argv[])
         exit(1);
       }
     }
+    else if (!strcmp(argv[i], "--list") || !strcmp(argv[i], "-l"))
+    {
+      CGContext::list_contexts();
+      exit(0);
+    }
     else if (!strcmp(argv[i], "--num-blocks") || !strcmp(argv[i], "-b"))
     {
       if (++i >= argc || (params.num_blocks = parse_int(argv[i])) < 1)

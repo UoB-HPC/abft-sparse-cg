@@ -31,6 +31,7 @@ public:
                           cg_vector *result) = 0;
 
   static CGContext* create(const char *impl, const char *mode);
+  static void       list_contexts();
 
 private:
   template<class ContextClass>

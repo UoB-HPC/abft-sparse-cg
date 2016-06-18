@@ -22,3 +22,15 @@ CGContext* CGContext::create(const char *target, const char *mode)
   exit(1);
   return NULL;
 }
+
+void CGContext::list_contexts()
+{
+  std::cout << std::endl
+            << "Registered contexts:"
+            << std::endl;
+  for (auto entry : context_list)
+  {
+    std::cout << "\t" << entry.target << "-" << entry.mode << std::endl;
+  }
+  std::cout << std::endl;
+}
