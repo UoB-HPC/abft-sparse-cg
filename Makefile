@@ -1,5 +1,5 @@
 CXX      = c++
-CXXFLAGS = -std=gnu++11 -I . -O0 -Wall -g
+CXXFLAGS = -std=gnu++11 -I . -O3 -Wall -g
 LDFLAGS  = -lm
 
 ARCH = $(shell uname -p)
