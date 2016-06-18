@@ -7,15 +7,11 @@ ARCH = $(shell uname -p)
 all: cg-coo cg-csr
 	make -C matrices
 
-cg-coo.o: cg.cpp COO/common.h
-	$(CXX) $(CXXFLAGS) -DCOO=1 -c $< -o $@
-cg-csr.o: cg.cpp CSR/common.h
-	$(CXX) $(CXXFLAGS) -DCSR=1 -c $< -o $@
-
-
-COO_OBJS = cg-coo.o CGContext.o mmio.o
-cg-coo.o: CGContext.h
+cg.o: CGContext.h
 CGContext.o: CGContext.h
+
+
+COO_OBJS = cg.o CGContext.o mmio.o
 
 COO_OBJS += COO/CPUContext.o
 COO/CPUContext.o: CGContext.h
@@ -25,16 +21,19 @@ ifneq (,$(findstring armv7,$(ARCH)))
   COO/ARM32Context.o: CGContext.h
 endif
 
-
 cg-coo: $(COO_OBJS)
 	$(CXX) $^ -o $@ $(LDFLAGS)
 COO_EXES += cg-coo
 
 
-CSR_OBJS = cg-csr.o CGContext.o mmio.o
+CSR_OBJS = cg.o CGContext.o mmio.o
+
 CSR_OBJS += CSR/CPUContext.o
+COO/CPUContext.o: CGContext.h
+
 ifneq (,$(findstring armv7,$(ARCH)))
   CSR_OBJS += CSR/ARM32Context.o
+  CSR/ARM32Context.o: CGContext.h
 endif
 
 cg-csr: $(CSR_OBJS)
