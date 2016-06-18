@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   // Initialize vectors b and x
   double *h_b = context->map_vector(b);
   double *h_x = context->map_vector(x);
-  for (unsigned y = 0; y < N; y++)
+  for (int y = 0; y < N; y++)
   {
     h_b[y] = rand() / (double)RAND_MAX;
     h_x[y] = 0.0;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   // rr = rT * r
   double rr = context->dot(r, r);
 
-  unsigned itr = 0;
+  int itr = 0;
   for (; itr < params.max_itrs && rr > params.conv_threshold; itr++)
   {
     // w = A*p
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
   double max_err = 0.0;
   double *h_r = context->map_vector(r);
   h_b = context->map_vector(b);
-  for (unsigned i = 0; i < N; i++)
+  for (int i = 0; i < N; i++)
   {
     double err = fabs(h_b[i] - h_r[i]);
     err_sq += err*err;
