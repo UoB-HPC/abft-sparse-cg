@@ -31,8 +31,6 @@ struct cg_matrix
 
 class CPUContext : public CGContext
 {
-  using CGContext::CGContext;
-
   cg_matrix* create_matrix(const uint32_t *columns,
                            const uint32_t *rows,
                            const double *values,
