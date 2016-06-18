@@ -223,5 +223,5 @@ class CPUContext_Constraints : public CPUContext
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
-  static CGContext::Register<CPUContext> B("cpu", "constraints");
+  static CGContext::Register<CPUContext_Constraints> B("cpu", "constraints");
 }
