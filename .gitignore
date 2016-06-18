@@ -1,5 +1,5 @@
-cg-coo-*
-cg-csr-*
+cg-coo
+cg-csr
 
 *.o
 *.dSYM
