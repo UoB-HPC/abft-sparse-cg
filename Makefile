@@ -14,10 +14,17 @@ cg-csr.o: cg.cpp CSR/common.h
 
 
 COO_OBJS = cg-coo.o CGContext.o mmio.o
+cg-coo.o: CGContext.h
+CGContext.o: CGContext.h
+
 COO_OBJS += COO/CPUContext.o
+COO/CPUContext.o: CGContext.h
+
 ifneq (,$(findstring armv7,$(ARCH)))
   COO_OBJS += COO/ARM32Context.o
+  COO/ARM32Context.o: CGContext.h
 endif
+
 
 cg-coo: $(COO_OBJS)
 	$(CXX) $^ -o $@ $(LDFLAGS)

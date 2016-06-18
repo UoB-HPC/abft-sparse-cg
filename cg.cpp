@@ -25,10 +25,8 @@ struct
   const char *target;
   const char *mode;
 
-  // TODO: Maybe assume SoA for bitflip regions
-  int    num_bit_flips;        // number of bits to flip in a matrix element
-  int    bitflip_region_start; // start of region in matrix element to bit-flip
-  int    bitflip_region_end;   // end of region in matrix element to bit-flip
+  int    num_bit_flips;  // number of bits to flip in a matrix element
+  CGContext::BitFlipKind bitflip_kind;
 } params;
 
 double            get_timestamp();
@@ -74,31 +72,11 @@ int main(int argc, char *argv[])
   // TODO: Print ABFT mode
   printf("\n");
 
+  // Inject bitflip if required
   if (params.num_bit_flips)
   {
-    // TODO: Reimplement this
-    // Flip a set of random (consecutive) bits in a random matrix element
-    /*
     srand(time(NULL));
-    int index = rand() % nnz;
-    int region_size = (params.bitflip_region_end - params.bitflip_region_start);
-    region_size -= params.num_bit_flips;
-    int start_bit   = (rand() % region_size) + params.bitflip_region_start;
-    for (int bit = start_bit; bit < start_bit + params.num_bit_flips; bit++)
-    {
-#if COO
-      flip_bit(A.elements+index, bit);
-#elif CSR
-      csr_colval colval;
-      colval.value = A.values[index];
-      colval.column = A.cols[index];
-      flip_bit(&colval, bit);
-      A.values[index] = colval.value;
-      A.cols[index] = colval.column;
-#endif
-      printf("*** flipping bit %d at index %d ***\n", bit, index);
-    }
-    */
+    context->inject_bitflip(A, params.bitflip_kind, params.num_bit_flips);
   }
 
   double start = get_timestamp();
@@ -204,12 +182,7 @@ void parse_arguments(int argc, char *argv[])
   params.max_itrs       = 1000;
   params.conv_threshold = 0.001;
   params.num_bit_flips = 0;
-  params.bitflip_region_start = 0;
-#if COO
-  params.bitflip_region_end   = 128;
-#elif CSR
-  params.bitflip_region_end   = 96;
-#endif
+  params.bitflip_kind  = CGContext::ANY;
 
   params.num_blocks = 25;
   params.matrix_file = "matrices/shallow_water1/shallow_water1.mtx";
@@ -285,23 +258,11 @@ void parse_arguments(int argc, char *argv[])
         i++;
         if (!strcmp(argv[i], "INDEX"))
         {
-#if COO
-          params.bitflip_region_start = 0;
-          params.bitflip_region_end   = 64;
-#elif CSR
-          params.bitflip_region_start = 64;
-          params.bitflip_region_end   = 96;
-#endif
+          params.bitflip_kind = CGContext::INDEX;
         }
         else if (!strcmp(argv[i], "VALUE"))
         {
-#if COO
-          params.bitflip_region_start = 64;
-          params.bitflip_region_end   = 128;
-#elif CSR
-          params.bitflip_region_start = 0;
-          params.bitflip_region_end   = 64;
-#endif
+          params.bitflip_kind = CGContext::VALUE;
         }
         else if ((params.num_bit_flips = parse_int(argv[i])) < 1)
         {

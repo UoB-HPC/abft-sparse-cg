@@ -162,6 +162,25 @@ class CPUContext : public CGContext
       result->data[element.col] += element.value * vec->data[element.row];
     }
   }
+
+  void inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips)
+  {
+    int index = rand() % mat->nnz;
+
+    int start = 0;
+    int end   = 128;
+    if (kind == VALUE)
+      start = 64;
+    else if (kind == INDEX)
+      end = 64;
+
+    for (int i = 0; i < num_flips; i++)
+    {
+      int bit   = (rand() % (end-start)) + start;
+      printf("*** flipping bit %d at index %d ***\n", bit, index);
+      ((uint32_t*)(mat->elements+index))[bit/32] ^= 0x1 << (bit % 32);
+    }
+  }
 };
 
 class CPUContext_Constraints : public CPUContext

@@ -8,6 +8,8 @@ struct cg_vector;
 class CGContext
 {
 public:
+  enum BitFlipKind {ANY, VALUE, INDEX};
+
   virtual ~CGContext(){};
 
   virtual cg_matrix* create_matrix(const uint32_t *columns,
@@ -29,6 +31,9 @@ public:
   virtual void       calc_p(cg_vector *p, cg_vector *r, double beta) = 0;
   virtual void       spmv(cg_matrix *mat, cg_vector *vec,
                           cg_vector *result) = 0;
+
+  virtual void       inject_bitflip(cg_matrix *mat,
+                                    BitFlipKind kind, int num_flips) = 0;
 
   static CGContext* create(const char *impl, const char *mode);
   static void       list_contexts();
