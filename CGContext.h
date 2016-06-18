@@ -48,10 +48,10 @@ private:
 
 public:
   template<class T>
-  class RegisterContext
+  class Register
   {
   public:
-    RegisterContext(const char *target, const char *mode)
+    Register(const char *target, const char *mode)
     {
       context_list.push_back({target, mode, call_context_constructor<T>});
     }

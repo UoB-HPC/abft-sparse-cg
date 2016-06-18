@@ -166,5 +166,5 @@ class CPUContext : public CGContext
 
 namespace
 {
-  static CGContext::RegisterContext<CPUContext> X("cpu", "none");
+  static CGContext::Register<CPUContext> A("cpu", "none");
 }
