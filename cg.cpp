@@ -6,16 +6,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <sys/time.h>
 
-#include "mmio.h"
+#include "CGContext.h"
 
-#if COO
-#include "COO/common.h"
-#elif CSR
-#include "CSR/common.h"
-#endif
+extern "C"
+{
+  #include "mmio.h"
+}
 
 struct
 {
@@ -24,43 +22,53 @@ struct
   double conv_threshold; // convergence threshold to stop CG
   const char *matrix_file;
 
-  abft_mode mode;
+  const char *target;
+  const char *mode;
 
+  // TODO: Maybe assume SoA for bitflip regions
   int    num_bit_flips;        // number of bits to flip in a matrix element
   int    bitflip_region_start; // start of region in matrix element to bit-flip
   int    bitflip_region_end;   // end of region in matrix element to bit-flip
 } params;
 
-double        get_timestamp();
-void          parse_arguments(int argc, char *argv[]);
-
+double            get_timestamp();
+static cg_matrix* load_sparse_matrix(CGContext *context, const char *filename,
+                                     int num_blocks, int *N, int *nnz);
+void              parse_arguments(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
   parse_arguments(argc, argv);
 
-  sparse_matrix A = load_sparse_matrix(params.matrix_file,
-                                       params.num_blocks, params.mode);
+  CGContext *context = CGContext::create(params.target, params.mode);
 
-  double *b = malloc(A.N*sizeof(double));
-  double *x = malloc(A.N*sizeof(double));
-  double *r = malloc(A.N*sizeof(double));
-  double *p = malloc(A.N*sizeof(double));
-  double *w = malloc(A.N*sizeof(double));
+  int N, nnz;
+  cg_matrix *A = load_sparse_matrix(context, params.matrix_file,
+                                    params.num_blocks, &N, &nnz);
+
+  cg_vector *b = context->create_vector(N);
+  cg_vector *x = context->create_vector(N);
+  cg_vector *r = context->create_vector(N);
+  cg_vector *p = context->create_vector(N);
+  cg_vector *w = context->create_vector(N);
 
   // Initialize vectors b and x
-  for (unsigned y = 0; y < A.N; y++)
+  double *h_b = context->map_vector(b);
+  double *h_x = context->map_vector(x);
+  for (unsigned y = 0; y < N; y++)
   {
-    b[y] = rand() / (double)RAND_MAX;
-    x[y] = 0.0;
+    h_b[y] = rand() / (double)RAND_MAX;
+    h_x[y] = 0.0;
   }
+  context->unmap_vector(b, h_b);
+  context->unmap_vector(x, h_x);
 
   printf("\n");
-  int block_size = A.N/params.num_blocks;
-  printf("matrix size           = %u x %u\n", A.N, A.N);
+  int block_size = N/params.num_blocks;
+  printf("matrix size           = %u x %u\n", N, N);
   printf("matrix block size     = %u x %u\n", block_size, block_size);
   printf("number of non-zeros   = %u (%.4f%%)\n",
-         A.nnz, A.nnz/((double)A.N*(double)A.N)*100);
+         nnz, nnz/((double)N*(double)N)*100);
   printf("maximum iterations    = %u\n", params.max_itrs);
   printf("convergence threshold = %g\n", params.conv_threshold);
   // TODO: Print ABFT mode
@@ -68,9 +76,11 @@ int main(int argc, char *argv[])
 
   if (params.num_bit_flips)
   {
+    // TODO: Reimplement this
     // Flip a set of random (consecutive) bits in a random matrix element
+    /*
     srand(time(NULL));
-    int index = rand() % A.nnz;
+    int index = rand() % nnz;
     int region_size = (params.bitflip_region_end - params.bitflip_region_start);
     region_size -= params.num_bit_flips;
     int start_bit   = (rand() % region_size) + params.bitflip_region_start;
@@ -88,59 +98,39 @@ int main(int argc, char *argv[])
 #endif
       printf("*** flipping bit %d at index %d ***\n", bit, index);
     }
+    */
   }
 
   double start = get_timestamp();
 
-  // r = b - Ax;
+  // r = b - Ax
   // p = r
-  spmv(A, x, r);
-  for (unsigned i = 0; i < A.N; i++)
-  {
-    p[i] = r[i] = b[i] - r[i];
-  }
+  context->copy_vector(r, b); // Ax is all zero, if x is all zero
+  context->copy_vector(p, r);
 
   // rr = rT * r
-  double rr = 0.0;
-  for (unsigned i = 0; i < A.N; i++)
-  {
-    rr += r[i] * r[i];
-  }
+  double rr = context->dot(r, r);
 
   unsigned itr = 0;
   for (; itr < params.max_itrs && rr > params.conv_threshold; itr++)
   {
     // w = A*p
-    spmv(A, p, w);
+    context->spmv(A, p, w);
 
     // pw = pT * A*p
-    double pw = 0.0;
-    for (unsigned i = 0; i < A.N; i++)
-    {
-      pw += p[i] * w[i];
-    }
+    double pw = context->dot(p, w);
 
     double alpha = rr / pw;
 
     // x = x + alpha * p
     // r = r - alpha * A*p
     // rr_new = rT * r
-    double rr_new = 0.0;
-    for (unsigned i = 0; i < A.N; i++)
-    {
-      x[i] += alpha * p[i];
-      r[i] -= alpha * w[i];
-
-      rr_new += r[i] * r[i];
-    }
+    double rr_new = context->calc_xr(x, r, p, w, alpha);
 
     double beta = rr_new / rr;
 
     // p = r + beta * p
-    for (unsigned  i = 0; i < A.N; i++)
-    {
-      p[i] = r[i] + beta*p[i];
-    }
+    context->calc_p(p, r, beta);
 
     rr = rr_new;
 
@@ -155,31 +145,34 @@ int main(int argc, char *argv[])
 
   printf("\ntime taken = %7.2lf ms\n\n", (end-start)*1e-3);
 
-  // Compute Ax
-  double *Ax = malloc(A.N*sizeof(double));
-  spmv(A, x, Ax);
+  // Compute r = Ax
+  context->spmv(A, x, r);
 
   // Compare Ax to b
   double err_sq = 0.0;
   double max_err = 0.0;
-  for (unsigned i = 0; i < A.N; i++)
+  double *h_r = context->map_vector(r);
+  h_b = context->map_vector(b);
+  for (unsigned i = 0; i < N; i++)
   {
-    double err = fabs(b[i] - Ax[i]);
+    double err = fabs(h_b[i] - h_r[i]);
     err_sq += err*err;
     max_err = err > max_err ? err : max_err;
   }
+  context->unmap_vector(b, h_b);
+  context->unmap_vector(r, h_r);
   printf("total error = %lf\n", sqrt(err_sq));
   printf("max error   = %lf\n", max_err);
   printf("\n");
 
-  // TODO
-  //free(A.elements);
-  free(b);
-  free(x);
-  free(r);
-  free(p);
-  free(w);
-  free(Ax);
+  context->destroy_matrix(A);
+  context->destroy_vector(b);
+  context->destroy_vector(x);
+  context->destroy_vector(r);
+  context->destroy_vector(p);
+  context->destroy_vector(w);
+
+  delete context;
 
   return 0;
 }
@@ -220,7 +213,9 @@ void parse_arguments(int argc, char *argv[])
 
   params.num_blocks = 25;
   params.matrix_file = "matrices/shallow_water1/shallow_water1.mtx";
-  params.mode = NONE;
+
+  params.target = "cpu";
+  params.mode   = "none";
 
   for (int i = 1; i < argc; i++)
   {
@@ -265,23 +260,17 @@ void parse_arguments(int argc, char *argv[])
         exit(1);
       }
 
-      if (!strcmp(argv[i], "NONE"))
-        params.mode = NONE;
-      else if (!strcmp(argv[i], "CONSTRAINTS"))
-        params.mode = CONSTRAINTS;
-      else if (!strcmp(argv[i], "SED"))
-        params.mode = SED;
-      else if (!strcmp(argv[i], "SEC7"))
-        params.mode = SEC7;
-      else if (!strcmp(argv[i], "SEC8"))
-        params.mode = SEC8;
-      else if (!strcmp(argv[i], "SECDED"))
-        params.mode = SECDED;
-      else
+      params.mode = argv[i];
+    }
+    else if (!strcmp(argv[i], "--target") || !strcmp(argv[i], "-t"))
+    {
+      if (++i >= argc)
       {
-        printf("Invalid ABFT mode\n");
+        printf("Implementation target required\n");
         exit(1);
       }
+
+      params.target = argv[i];
     }
     else if (!strcmp(argv[i], "--inject-bitflip") || !strcmp(argv[i], "-x"))
     {
@@ -353,4 +342,120 @@ void parse_arguments(int argc, char *argv[])
       exit(1);
     }
   }
+}
+
+struct matrix_entry
+{
+  uint32_t col;
+  uint32_t row;
+  double value;
+};
+
+struct matrix_block
+{
+  matrix_entry *elements;
+};
+
+static int compare_matrix_elements(const void *a, const void *b)
+{
+  matrix_entry _a = *(matrix_entry*)a;
+  matrix_entry _b = *(matrix_entry*)b;
+
+  if (_a.row < _b.row)
+  {
+    return -1;
+  }
+  else if (_a.row > _b.row)
+  {
+    return 1;
+  }
+  else
+  {
+    return _a.col - _b.col;
+  }
+}
+
+cg_matrix* load_sparse_matrix(CGContext *context, const char *filename,
+                              int num_blocks, int *N, int *nnz)
+{
+  matrix_block *M = new matrix_block;
+
+  FILE *file = fopen(filename, "r");
+  if (file == NULL)
+  {
+    printf("Failed to open '%s'\n", filename);
+    exit(1);
+  }
+
+  int width, height, input_nnz;
+  mm_read_mtx_crd_size(file, &width, &height, &input_nnz);
+  if (width != height)
+  {
+    printf("Matrix is not square\n");
+    exit(1);
+  }
+
+  // Load the matrix block from the input file
+  int block_nnz = 0;
+  M->elements = new matrix_entry[2*input_nnz];
+  for (int i = 0; i < input_nnz; i++)
+  {
+    matrix_entry element;
+
+    int col, row;
+
+    if (fscanf(file, "%d %d %lg\n", &col, &row, &element.value) != 3)
+    {
+      printf("Failed to read matrix data\n");
+      exit(1);
+    }
+    // adjust from 1-based to 0-based
+    col--;
+    row--;
+
+    element.col = col;
+    element.row = row;
+    M->elements[block_nnz] = element;
+    block_nnz++;
+
+    if (element.col == element.row)
+      continue;
+
+    element.row = col;
+    element.col = row;
+    M->elements[block_nnz] = element;
+    block_nnz++;
+  }
+
+  qsort(M->elements, block_nnz, sizeof(matrix_entry), compare_matrix_elements);
+
+  uint32_t *columns = new uint32_t[block_nnz * num_blocks];
+  uint32_t *rows    = new uint32_t[block_nnz * num_blocks];
+  double   *values  = new double[block_nnz * num_blocks];
+
+  // Duplicate block across diagonal of full matrix
+  *nnz = 0;
+  for (int j = 0; j < num_blocks; j++)
+  {
+    for (int i = 0; i < block_nnz; i++)
+    {
+      matrix_entry element = M->elements[i];
+
+      columns[*nnz] = element.col + j*width;
+      rows[*nnz]    = element.row + j*height;
+      values[*nnz]  = element.value;
+
+      (*nnz)++;
+    }
+  }
+
+  *N = width*num_blocks;
+
+  cg_matrix *result = context->create_matrix(columns, rows, values, *N, *nnz);
+
+  delete[] columns;
+  delete[] rows;
+  delete[] values;
+
+  return result;
 }
