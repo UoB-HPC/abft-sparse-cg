@@ -164,7 +164,64 @@ class CPUContext : public CGContext
   }
 };
 
+class CPUContext_Constraints : public CPUContext
+{
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    // Initialize result vector to zero
+    for (unsigned i = 0; i < mat->N; i++)
+      result->data[i] = 0.0;
+
+    // Loop over non-zeros in matrix
+    for (unsigned i = 0; i < mat->nnz; i++)
+    {
+      // Load non-zero element
+      matrix_entry element = mat->elements[i];
+
+      // Check index size constraints
+      if (element.row >= mat->N)
+      {
+        printf("row size constraint violated for index %d\n", i);
+        exit(1);
+      }
+      if (element.col >= mat->N)
+      {
+        printf("column size constraint violated for index %d\n", i);
+        exit(1);
+      }
+
+      // Check index order constraints
+      // Skip last row
+      if (i < mat->nnz - 1)
+      {
+        // Compare this row index to the next row index
+        uint32_t next_row = mat->elements[i+1].row;
+        if (element.row > next_row)
+        {
+          printf("row index order violated at index %d\n", i);
+          exit(1);
+        }
+        else if (element.row == next_row)
+        {
+          // Compare this column index to the next column index (if same row)
+          uint32_t next_col = mat->elements[i+1].col;
+          if (element.col >= next_col)
+          {
+            printf("column index order violated at index %d\n", i);
+            exit(1);
+          }
+        }
+      }
+
+      // Multiply element value by the corresponding vector value
+      // and accumulate into result vector
+      result->data[element.col] += element.value * vec->data[element.row];
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
+  static CGContext::Register<CPUContext> B("cpu", "constraints");
 }
