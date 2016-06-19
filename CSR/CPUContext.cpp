@@ -367,6 +367,73 @@ class CPUContext_SEC8 : public CPUContext
   }
 };
 
+class CPUContext_SECDED : public CPUContext
+{
+  virtual void generate_ecc_bits(csr_element& element)
+  {
+    element.column |= ecc_compute_col8(element);
+    element.column |= ecc_compute_overall_parity(element) << 24;
+  }
+
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    for (int row = 0; row < mat->N; row++)
+    {
+      double tmp = 0.0;
+
+      uint32_t start = mat->rows[row];
+      uint32_t end   = mat->rows[row+1];
+      for (uint32_t i = start; i < end; i++)
+      {
+        csr_element element;
+        element.value  = mat->values[i];
+        element.column = mat->cols[i];
+
+        // Check parity bits
+        uint32_t overall_parity = ecc_compute_overall_parity(element);
+        uint32_t syndrome = ecc_compute_col8(element);
+        if (overall_parity)
+        {
+          if (syndrome)
+          {
+            // Unflip bit
+            uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
+            ((uint32_t*)(&element))[bit/32] ^= 0x1 << (bit % 32);
+
+            printf("[ECC] corrected bit %u at index %d\n", bit, i);
+          }
+          else
+          {
+            // Correct overall parity bit
+            element.column ^= 0x1 << 24;
+
+            printf("[ECC] corrected overall parity bit at index %d\n", i);
+          }
+          mat->cols[i] = element.column;
+          mat->values[i] = element.value;
+        }
+        else
+        {
+          if (syndrome)
+          {
+            // Overall parity fine but error in syndrom
+            // Must be double-bit error - cannot correct this
+            printf("[ECC] double-bit error detected\n");
+            exit(1);
+          }
+        }
+
+        // Mask out ECC from high order column bits
+        element.column &= 0x00FFFFFF;
+
+        tmp += mat->values[i] * vec->data[element.column];
+      }
+
+      result->data[row] = tmp;
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
@@ -374,4 +441,5 @@ namespace
   static CGContext::Register<CPUContext_SED> C("cpu", "sed");
   static CGContext::Register<CPUContext_SEC7> D("cpu", "sec7");
   static CGContext::Register<CPUContext_SEC8> E("cpu", "sec8");
+  static CGContext::Register<CPUContext_SECDED> F("cpu", "secded");
 }
