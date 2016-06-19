@@ -4,29 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ecc.h"
+
 struct cg_vector
 {
   int N;
   double *data;
 };
 
-// 128-bit matrix element
-// Bits  0 to  31 are the colum index
-// Bits 32 to  63 are the row index
-// Bits 64 to 127 are the floating point value
-struct matrix_entry
-{
-  uint32_t col;
-  uint32_t row;
-  double value;
-};
-
 struct cg_matrix
 {
   unsigned N;
   unsigned nnz;
-  //abft_mode mode;
-  matrix_entry *elements;
+  coo_element *elements;
 };
 
 class CPUContext : public CGContext
@@ -40,7 +30,7 @@ class CPUContext : public CGContext
 
     M->N         = N;
     M->nnz       = nnz;
-    M->elements  = new matrix_entry[nnz];
+    M->elements  = new coo_element[nnz];
 
     for (int i = 0; i < nnz; i++)
     {
@@ -52,7 +42,7 @@ class CPUContext : public CGContext
     // Initialize ECC bits
     // for (int i = 0; i < M->nnz; i++)
     // {
-    //   matrix_entry element = M->elements[i];
+    //   coo_element element = M->elements[i];
     //
     //   switch (mode)
     //   {
@@ -155,7 +145,7 @@ class CPUContext : public CGContext
     for (unsigned i = 0; i < mat->nnz; i++)
     {
       // Load non-zero element
-      matrix_entry element = mat->elements[i];
+      coo_element element = mat->elements[i];
 
       // Multiply element value by the corresponding vector value
       // and accumulate into result vector
@@ -195,7 +185,7 @@ class CPUContext_Constraints : public CPUContext
     for (unsigned i = 0; i < mat->nnz; i++)
     {
       // Load non-zero element
-      matrix_entry element = mat->elements[i];
+      coo_element element = mat->elements[i];
 
       // Check index size constraints
       if (element.row >= mat->N)
@@ -239,8 +229,66 @@ class CPUContext_Constraints : public CPUContext
   }
 };
 
+class CPUContext_SED : public CPUContext
+{
+  cg_matrix* create_matrix(const uint32_t *columns,
+                           const uint32_t *rows,
+                           const double *values,
+                           int N, int nnz)
+  {
+    cg_matrix *M = new cg_matrix;
+
+    M->N         = N;
+    M->nnz       = nnz;
+    M->elements  = new coo_element[nnz];
+
+    for (int i = 0; i < nnz; i++)
+    {
+      coo_element element;
+      element.col   = columns[i];
+      element.row   = rows[i];
+      element.value = values[i];
+
+      element.col |= ecc_compute_overall_parity(element) << 31;
+
+      M->elements[i] = element;
+    }
+
+    return M;
+  }
+
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    // Initialize result vector to zero
+    for (unsigned i = 0; i < mat->N; i++)
+      result->data[i] = 0.0;
+
+    // Loop over non-zeros in matrix
+    for (unsigned i = 0; i < mat->nnz; i++)
+    {
+      // Load non-zero element
+      coo_element element = mat->elements[i];
+
+      // Check overall parity bit
+      if (ecc_compute_overall_parity(element))
+      {
+        printf("[ECC] error detected at index %d\n", i);
+        exit(1);
+      }
+
+      // Mask out ECC from high order column bits
+      element.col &= 0x00FFFFFF;
+
+      // Multiply element value by the corresponding vector value
+      // and accumulate into result vector
+      result->data[element.col] += element.value * vec->data[element.row];
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
   static CGContext::Register<CPUContext_Constraints> B("cpu", "constraints");
+  static CGContext::Register<CPUContext_SED> C("cpu", "sed");
 }

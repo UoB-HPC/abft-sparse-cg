@@ -2,8 +2,18 @@
 #define ECC_H
 
 #include <stdio.h>
+#include <stdint.h>
 
-#include "common.h"
+// 128-bit matrix element
+// Bits  0 to  31 are the colum index
+// Bits 32 to  63 are the row index
+// Bits 64 to 127 are the floating point value
+struct coo_element
+{
+  uint32_t col;
+  uint32_t row;
+  double value;
+};
 
 #define ECC7_P1_0 0x80AAAD5B
 #define ECC7_P1_1 0x55555556
@@ -50,7 +60,7 @@
 // To check a matrix element for errors, simply use this function again, and
 // the returned value will be the error 'syndrome' which will be non-zero if
 // an error occured.
-static inline uint32_t ecc_compute_col8(matrix_entry element)
+static inline uint32_t ecc_compute_col8(coo_element element)
 {
   uint32_t *data = (uint32_t*)&element;
 
@@ -95,7 +105,7 @@ static inline int is_power_of_2(uint32_t x)
 }
 
 // Compute the overall parity of a 128-bit matrix element
-static inline uint32_t ecc_compute_overall_parity(matrix_entry element)
+static inline uint32_t ecc_compute_overall_parity(coo_element element)
 {
   uint32_t *data = (uint32_t*)&element;
   return __builtin_parity(data[0] ^ data[1] ^ data[2] ^ data[3]);
