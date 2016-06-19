@@ -1,6 +1,6 @@
 CXX      = c++
-CXXFLAGS = -std=gnu++11 -I . -O3 -Wall -g
-LDFLAGS  = -lm
+CXXFLAGS = -std=gnu++11 -I . -O3 -Wall -g -fopenmp
+LDFLAGS  = -lm -fopenmp
 
 ARCH = $(shell uname -p)
 

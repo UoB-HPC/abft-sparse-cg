@@ -133,6 +133,7 @@ class CPUContext : public CGContext
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
@@ -182,6 +183,7 @@ class CPUContext_Constraints : public CPUContext
 {
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
@@ -235,6 +237,7 @@ class CPUContext_SED : public CPUContext
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
@@ -274,6 +277,7 @@ class CPUContext_SEC7 : public CPUContext
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
@@ -320,6 +324,7 @@ class CPUContext_SEC8 : public CPUContext
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
@@ -377,6 +382,7 @@ class CPUContext_SECDED : public CPUContext
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
   {
+#pragma omp parallel for
     for (unsigned row = 0; row < mat->N; row++)
     {
       double tmp = 0.0;
