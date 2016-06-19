@@ -274,9 +274,51 @@ class CPUContext_SED : public CPUContext
   }
 };
 
+class CPUContext_SEC7 : public CPUContext
+{
+  virtual void generate_ecc_bits(coo_element& element)
+  {
+    element.col |= ecc_compute_col8(element);
+  }
+
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    // Initialize result vector to zero
+    for (unsigned i = 0; i < mat->N; i++)
+      result->data[i] = 0.0;
+
+    // Loop over non-zeros in matrix
+    for (unsigned i = 0; i < mat->nnz; i++)
+    {
+      // Load non-zero element
+      coo_element element = mat->elements[i];
+
+      // Check ECC
+      uint32_t syndrome = ecc_compute_col8(element);
+      if (syndrome)
+      {
+        // Unflip bit
+        uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
+        ((uint32_t*)(&element))[bit/32] ^= 0x1 << (bit % 32);
+        mat->elements[i] = element;
+
+        printf("[ECC] corrected bit %u at index %d\n", bit, i);
+      }
+
+      // Mask out ECC from high order column bits
+      element.col &= 0x00FFFFFF;
+
+      // Multiply element value by the corresponding vector value
+      // and accumulate into result vector
+      result->data[element.col] += element.value * vec->data[element.row];
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
   static CGContext::Register<CPUContext_Constraints> B("cpu", "constraints");
   static CGContext::Register<CPUContext_SED> C("cpu", "sed");
+  static CGContext::Register<CPUContext_SEC7> D("cpu", "sec7");
 }
