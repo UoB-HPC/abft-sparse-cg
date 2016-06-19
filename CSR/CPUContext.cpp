@@ -178,7 +178,56 @@ class CPUContext : public CGContext
   }
 };
 
+class CPUContext_Constraints : public CPUContext
+{
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    for (int row = 0; row < mat->N; row++)
+    {
+      double tmp = 0.0;
+
+      uint32_t start = mat->rows[row];
+      uint32_t end   = mat->rows[row+1];
+
+      if (end > mat->nnz)
+      {
+        printf("row size constraint violated for row %d\n", row);
+        exit(1);
+      }
+      if (end < start)
+      {
+        printf("row order constraint violated for row%d\n", row);
+        exit(1);
+      }
+
+      for (uint32_t i = start; i < end; i++)
+      {
+        uint32_t col = mat->cols[i];
+
+        if (col >= mat->N)
+        {
+          printf("column size constraint violated at index %d\n", i);
+          exit(1);
+        }
+        if (i < end-1)
+        {
+          if (mat->cols[i+1] <= col)
+          {
+            printf("column order constraint violated at index %d\n", i);
+            exit(1);
+          }
+        }
+
+        tmp += mat->values[i] * vec->data[col];
+      }
+
+      result->data[row] = tmp;
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
+  static CGContext::Register<CPUContext_Constraints> B("cpu", "constraints");
 }
