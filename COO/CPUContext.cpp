@@ -21,6 +21,10 @@ struct cg_matrix
 
 class CPUContext : public CGContext
 {
+  virtual void generate_ecc_bits(coo_element& element)
+  {
+  }
+
   cg_matrix* create_matrix(const uint32_t *columns,
                            const uint32_t *rows,
                            const double *values,
@@ -34,9 +38,14 @@ class CPUContext : public CGContext
 
     for (int i = 0; i < nnz; i++)
     {
-      M->elements[i].col   = columns[i];
-      M->elements[i].row   = rows[i];
-      M->elements[i].value = values[i];
+      coo_element element;
+      element.col   = columns[i];
+      element.row   = rows[i];
+      element.value = values[i];
+
+      generate_ecc_bits(element);
+
+      M->elements[i] = element;
     }
 
     // Initialize ECC bits
@@ -231,30 +240,9 @@ class CPUContext_Constraints : public CPUContext
 
 class CPUContext_SED : public CPUContext
 {
-  cg_matrix* create_matrix(const uint32_t *columns,
-                           const uint32_t *rows,
-                           const double *values,
-                           int N, int nnz)
+  virtual void generate_ecc_bits(coo_element& element)
   {
-    cg_matrix *M = new cg_matrix;
-
-    M->N         = N;
-    M->nnz       = nnz;
-    M->elements  = new coo_element[nnz];
-
-    for (int i = 0; i < nnz; i++)
-    {
-      coo_element element;
-      element.col   = columns[i];
-      element.row   = rows[i];
-      element.value = values[i];
-
-      element.col |= ecc_compute_overall_parity(element) << 31;
-
-      M->elements[i] = element;
-    }
-
-    return M;
+    element.col |= ecc_compute_overall_parity(element) << 31;
   }
 
   void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
