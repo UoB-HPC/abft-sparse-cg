@@ -47,7 +47,7 @@ benchmark: benchmark-coo benchmark-csr
 benchmark-coo:
 	./run_benchmark ./cg-coo -b $(BENCHMARK_SIZE)
 benchmark-csr:
-	./run_benchmark ./cg-coo -b $(BENCHMARK_SIZE)
+	./run_benchmark ./cg-csr -b $(BENCHMARK_SIZE)
 
 test: test-coo test-csr
 test-coo:
