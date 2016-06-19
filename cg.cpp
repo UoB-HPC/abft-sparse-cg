@@ -45,6 +45,17 @@ int main(int argc, char *argv[])
   cg_matrix *A = load_sparse_matrix(context, params.matrix_file,
                                     params.num_blocks, &N, &nnz);
 
+  printf("\n");
+  int block_size = N/params.num_blocks;
+  printf("matrix size           = %u x %u\n", N, N);
+  printf("matrix block size     = %u x %u\n", block_size, block_size);
+  printf("number of non-zeros   = %u (%.4f%%)\n",
+         nnz, nnz/((double)N*(double)N)*100);
+  printf("maximum iterations    = %u\n", params.max_itrs);
+  printf("convergence threshold = %g\n", params.conv_threshold);
+  // TODO: Print ABFT mode
+  printf("\n");
+
   cg_vector *b = context->create_vector(N);
   cg_vector *x = context->create_vector(N);
   cg_vector *r = context->create_vector(N);
@@ -61,17 +72,6 @@ int main(int argc, char *argv[])
   }
   context->unmap_vector(b, h_b);
   context->unmap_vector(x, h_x);
-
-  printf("\n");
-  int block_size = N/params.num_blocks;
-  printf("matrix size           = %u x %u\n", N, N);
-  printf("matrix block size     = %u x %u\n", block_size, block_size);
-  printf("number of non-zeros   = %u (%.4f%%)\n",
-         nnz, nnz/((double)N*(double)N)*100);
-  printf("maximum iterations    = %u\n", params.max_itrs);
-  printf("convergence threshold = %g\n", params.conv_threshold);
-  // TODO: Print ABFT mode
-  printf("\n");
 
   // Inject bitflip if required
   if (params.num_bit_flips)
