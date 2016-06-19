@@ -1,8 +1,16 @@
 CXX      = c++
-CXXFLAGS = -std=gnu++11 -I . -O3 -Wall -g -fopenmp
-LDFLAGS  = -lm -fopenmp
+CXXFLAGS = -std=gnu++11 -I . -O3 -Wall -g
+LDFLAGS  = -lm
 
-ARCH = $(shell uname -p)
+PLATFORM = $(shell uname -s)
+ARCH     = $(shell uname -p)
+
+ifeq ($(PLATFORM), Darwin)
+	LDFLAGS   = -framework OpenCL
+else
+	CXXFLAGS += -fopenmp
+	LDFLAGS   = -lOpenCL -lm
+endif
 
 all: cg-coo cg-csr
 	make -C matrices
@@ -29,7 +37,10 @@ COO_EXES += cg-coo
 CSR_OBJS = cg.o CGContext.o mmio.o
 
 CSR_OBJS += CSR/CPUContext.o
-COO/CPUContext.o: CGContext.h
+CSR/CPUContext.o: CGContext.h
+
+CSR_OBJS += CSR/OCLContext.o
+CSR/OCLContext.o: CGContext.h
 
 ifneq (,$(findstring armv7,$(ARCH)))
   CSR_OBJS += CSR/ARM32Context.o
