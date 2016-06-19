@@ -47,13 +47,13 @@ int main(int argc, char *argv[])
 
   printf("\n");
   int block_size = N/params.num_blocks;
+  printf("implementation        = %s-%s\n", params.target, params.mode);
   printf("matrix size           = %u x %u\n", N, N);
   printf("matrix block size     = %u x %u\n", block_size, block_size);
   printf("number of non-zeros   = %u (%.4f%%)\n",
          nnz, nnz/((double)N*(double)N)*100);
   printf("maximum iterations    = %u\n", params.max_itrs);
   printf("convergence threshold = %g\n", params.conv_threshold);
-  // TODO: Print ABFT mode
   printf("\n");
 
   cg_vector *b = context->create_vector(N);
