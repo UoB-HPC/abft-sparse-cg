@@ -2,8 +2,13 @@
 #define ECC_H
 
 #include <stdio.h>
+#include <stdint.h>
 
-#include "common.h"
+typedef struct
+{
+  double value;
+  uint32_t column;
+} __attribute__((packed)) csr_element;
 
 #define ECC7_P1_0 0x56AAAD5B
 #define ECC7_P1_1 0xAB555555
@@ -43,7 +48,7 @@
 // To check a matrix element for errors, simply use this function again, and
 // the returned value will be the error 'syndrome' which will be non-zero if
 // an error occured.
-static inline uint32_t ecc_compute_col8(csr_colval colval)
+static inline uint32_t ecc_compute_col8(csr_element colval)
 {
   uint32_t *data = (uint32_t*)&colval;
 
@@ -81,7 +86,7 @@ static inline int is_power_of_2(uint32_t x)
 }
 
 // Compute the overall parity of a 96-bit matrix element
-static inline uint32_t ecc_compute_overall_parity(csr_colval colval)
+static inline uint32_t ecc_compute_overall_parity(csr_element colval)
 {
   uint32_t *data = (uint32_t*)&colval;
   return __builtin_parity(data[0] ^ data[1] ^ data[2]);
