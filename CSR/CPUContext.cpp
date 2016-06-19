@@ -226,8 +226,48 @@ class CPUContext_Constraints : public CPUContext
   }
 };
 
+class CPUContext_SED : public CPUContext
+{
+  virtual void generate_ecc_bits(csr_element& element)
+  {
+    element.column |= ecc_compute_overall_parity(element) << 31;
+  }
+
+  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+  {
+    for (int row = 0; row < mat->N; row++)
+    {
+      double tmp = 0.0;
+
+      uint32_t start = mat->rows[row];
+      uint32_t end   = mat->rows[row+1];
+      for (uint32_t i = start; i < end; i++)
+      {
+        csr_element element;
+        element.value  = mat->values[i];
+        element.column = mat->cols[i];
+
+        // Check overall parity bit
+        if (ecc_compute_overall_parity(element))
+        {
+          printf("[ECC] error detected at index %d\n", i);
+          exit(1);
+        }
+
+        // Mask out ECC from high order column bits
+        element.column &= 0x00FFFFFF;
+
+        tmp += mat->values[i] * vec->data[element.column];
+      }
+
+      result->data[row] = tmp;
+    }
+  }
+};
+
 namespace
 {
   static CGContext::Register<CPUContext> A("cpu", "none");
   static CGContext::Register<CPUContext_Constraints> B("cpu", "constraints");
+  static CGContext::Register<CPUContext_SED> C("cpu", "sed");
 }
