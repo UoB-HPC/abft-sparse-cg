@@ -45,15 +45,15 @@ CSR_EXES += cg-csr
 BENCHMARK_SIZE=10
 benchmark: benchmark-coo benchmark-csr
 benchmark-coo:
-	for exe in $(COO_EXES); do ./run_benchmark ./$$exe -b $(BENCHMARK_SIZE); done
+	./run_benchmark ./cg-coo -b $(BENCHMARK_SIZE)
 benchmark-csr:
-	for exe in $(CSR_EXES); do ./run_benchmark ./$$exe -b $(BENCHMARK_SIZE); done
+	./run_benchmark ./cg-coo -b $(BENCHMARK_SIZE)
 
 test: test-coo test-csr
 test-coo:
-	for exe in $(COO_EXES); do ./run_tests ./$$exe ; done
+	./run_tests ./cg-coo
 test-csr:
-	for exe in $(CSR_EXES); do ./run_tests ./$$exe ; done
+	./run_tests ./cg-csr
 
 clean:
 	rm -f cg-coo cg-csr $(COO_OBJS) $(CSR_OBJS)

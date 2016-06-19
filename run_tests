@@ -3,8 +3,10 @@
 EXE=$1
 ARGS="-b 4"
 
+# TODO: Get list of target/mode pairs from --list
+
 # Test each mode without bitflips
-for mode in NONE CONSTRAINTS SED SEC7 SEC8 SECDED
+for mode in none constraints sed sec7 sec8 secded
 do
   $EXE $ARGS -m $mode >/dev/null
   if [ $? -eq 0 ]
@@ -16,7 +18,7 @@ do
 done
 
 # Test modes with single-bit error detection with a single bit-flip
-for mode in SED
+for mode in sed
 do
   $EXE $ARGS -m $mode -x | grep 'error detected at index' >/dev/null
   if [ $? -eq 0 ]
@@ -28,7 +30,7 @@ do
 done
 
 # Test modes with correction capabilities with a single bit-flip
-for mode in SEC7 SEC8 SECDED
+for mode in sec7 sec8 secded
 do
   $EXE $ARGS -m $mode -x >/dev/null
   if [ $? -eq 0 ]
@@ -40,7 +42,7 @@ do
 done
 
 # Test modes with double-bit error detection with a double bit-flip
-for mode in SECDED
+for mode in secded
 do
   $EXE $ARGS -m $mode -x 2 | grep 'double-bit error detected' >/dev/null
   if [ $? -eq 0 ]
