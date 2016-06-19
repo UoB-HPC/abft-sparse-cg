@@ -9,7 +9,7 @@ ifeq ($(PLATFORM), Darwin)
 	LDFLAGS   = -framework OpenCL
 else
 	CXXFLAGS += -fopenmp
-	LDFLAGS   = -lOpenCL -lm
+	LDFLAGS   = -lOpenCL -lm -fopenmp
 endif
 
 all: cg-coo cg-csr
