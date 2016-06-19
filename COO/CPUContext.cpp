@@ -48,32 +48,6 @@ class CPUContext : public CGContext
       M->elements[i] = element;
     }
 
-    // Initialize ECC bits
-    // for (int i = 0; i < M->nnz; i++)
-    // {
-    //   coo_element element = M->elements[i];
-    //
-    //   switch (mode)
-    //   {
-    //   case NONE:
-    //   case CONSTRAINTS:
-    //     break;
-    //   case SED:
-    //     element.col |= ecc_compute_overall_parity(element) << 31;
-    //     break;
-    //   case SEC7:
-    //     element.col |= ecc_compute_col8(element);
-    //     break;
-    //   case SEC8:
-    //   case SECDED:
-    //     element.col |= ecc_compute_col8(element);
-    //     element.col |= ecc_compute_overall_parity(element) << 24;
-    //     break;
-    //   }
-    //
-    //   M->elements[i] = element;
-    // }
-
     return M;
   }
 
