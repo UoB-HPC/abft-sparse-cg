@@ -6,14 +6,19 @@ echo
 echo "Benchmarking $* across $NUM_RUNS runs"
 echo
 
-# TODO: Get list of target/mode pairs from --list
+# Get list of target/mode pairs from
+IMPLEMENTATIONS=$($1 --list | grep '-')
+
 # Test each mode without bitflips
-for mode in none constraints sed sec7 sec8 secded
+for IMPL in $IMPLEMENTATIONS
 do
-  printf "%-12s: " $mode
+  target=$(echo $IMPL | awk -F '-' '{print $1}')
+  mode=$(echo $IMPL | awk -F '-' '{print $2}')
+
+  printf "%-20s: " $IMPL
   for i in `seq $NUM_RUNS`
   do
-    $* -m $mode | grep 'time taken'
+    $* -t $target -m $mode | grep 'time taken'
   done | \
     awk 'BEGIN { min=999999 }
         { total+=$4; if($4<min){min=$4} if ($4>max){max=$4}}
