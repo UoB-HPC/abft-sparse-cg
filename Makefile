@@ -55,15 +55,15 @@ CSR_EXES += cg-csr
 
 BENCHMARK_SIZE=10
 benchmark: benchmark-coo benchmark-csr
-benchmark-coo:
+benchmark-coo: cg-coo
 	./run_benchmark ./cg-coo -b $(BENCHMARK_SIZE)
-benchmark-csr:
+benchmark-csr: cg-csr
 	./run_benchmark ./cg-csr -b $(BENCHMARK_SIZE)
 
 test: test-coo test-csr
-test-coo:
+test-coo: cg-coo
 	./run_tests ./cg-coo
-test-csr:
+test-csr: cg-csr
 	./run_tests ./cg-csr
 
 clean:
