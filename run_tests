@@ -3,52 +3,80 @@
 EXE=$1
 ARGS="-b 4"
 
-# TODO: Get list of target/mode pairs from --list
+# Get list of target/mode pairs
+IMPLEMENTATIONS=$($EXE --list | grep '-')
 
 # Test each mode without bitflips
-for mode in none constraints sed sec7 sec8 secded
+for IMPL in $IMPLEMENTATIONS
 do
-  $EXE $ARGS -m $mode >/dev/null
+  target=$(echo $IMPL | awk -F '-' '{print $1}')
+  mode=$(echo $IMPL | awk -F '-' '{print $2}')
+  cmd="$EXE $ARGS -t $target -m $mode"
+  $cmd >/dev/null
   if [ $? -eq 0 ]
   then
-    echo "passed $EXE $mode"
+    echo "passed $cmd"
   else
-    echo "FAILED $EXE $mode"
+    echo "FAILED $cmd"
   fi
 done
 
 # Test modes with single-bit error detection with a single bit-flip
-for mode in sed
+for IMPL in $IMPLEMENTATIONS
 do
-  $EXE $ARGS -m $mode -x | grep 'error detected at index' >/dev/null
+  if [ "$(echo $IMPL | grep sed)" == "" ]
+  then
+    continue;
+  fi
+
+  target=$(echo $IMPL | awk -F '-' '{print $1}')
+  mode=$(echo $IMPL | awk -F '-' '{print $2}')
+  cmd="$EXE $ARGS -t $target -m $mode -x"
+  $cmd | grep 'error detected at index' >/dev/null
   if [ $? -eq 0 ]
   then
-    echo "passed $EXE $mode -x"
+    echo "passed $cmd"
   else
-    echo "FAILED $EXE $mode -x"
+    echo "FAILED $cmd"
   fi
 done
 
 # Test modes with correction capabilities with a single bit-flip
-for mode in sec7 sec8 secded
+for IMPL in $IMPLEMENTATIONS
 do
-  $EXE $ARGS -m $mode -x >/dev/null
+  if [ "$(echo $IMPL | grep sec)" == "" ]
+  then
+    continue;
+  fi
+
+  target=$(echo $IMPL | awk -F '-' '{print $1}')
+  mode=$(echo $IMPL | awk -F '-' '{print $2}')
+  cmd="$EXE $ARGS -t $target -m $mode -x"
+  $cmd >/dev/null
   if [ $? -eq 0 ]
   then
-    echo "passed $EXE $mode -x"
+    echo "passed $cmd"
   else
-    echo "FAILED $EXE $mode -x"
+    echo "FAILED $cmd"
   fi
 done
 
 # Test modes with double-bit error detection with a double bit-flip
-for mode in secded
+for IMPL in $IMPLEMENTATIONS
 do
-  $EXE $ARGS -m $mode -x 2 | grep 'double-bit error detected' >/dev/null
+  if [ "$(echo $IMPL | grep secded)" == "" ]
+  then
+    continue;
+  fi
+
+  target=$(echo $IMPL | awk -F '-' '{print $1}')
+  mode=$(echo $IMPL | awk -F '-' '{print $2}')
+  cmd="$EXE $ARGS -t $target -m $mode -x 2"
+  $cmd | grep 'double-bit error detected' >/dev/null
   if [ $? -eq 0 ]
   then
-    echo "passed $EXE $mode -x 2"
+    echo "passed $cmd"
   else
-    echo "FAILED $EXE $mode -x 2"
+    echo "FAILED $cmd"
   fi
 done
