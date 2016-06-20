@@ -22,14 +22,14 @@ public:
   virtual void       destroy_vector(cg_vector *vec) = 0;
   virtual double*    map_vector(cg_vector *v) = 0;
   virtual void       unmap_vector(cg_vector *v, double *h) = 0;
-  virtual void       copy_vector(cg_vector *dst, cg_vector *src) = 0;
+  virtual void       copy_vector(cg_vector *dst, const cg_vector *src) = 0;
 
-  virtual double     dot(cg_vector *a, cg_vector *b) = 0;
+  virtual double     dot(const cg_vector *a, const cg_vector *b) = 0;
   virtual double     calc_xr(cg_vector *x, cg_vector *r,
-                             cg_vector *p, cg_vector *w,
+                             const cg_vector *p, const cg_vector *w,
                              double alpha) = 0;
-  virtual void       calc_p(cg_vector *p, cg_vector *r, double beta) = 0;
-  virtual void       spmv(cg_matrix *mat, cg_vector *vec,
+  virtual void       calc_p(cg_vector *p, const cg_vector *r, double beta) = 0;
+  virtual void       spmv(const cg_matrix *mat, const cg_vector *vec,
                           cg_vector *result) = 0;
 
   virtual void       inject_bitflip(cg_matrix *mat,

@@ -46,31 +46,32 @@ void OCLContext::unmap_vector(cg_vector *v, double *h)
   // TODO: implement
 }
 
-void OCLContext::copy_vector(cg_vector *dst, cg_vector *src)
+void OCLContext::copy_vector(cg_vector *dst, const cg_vector *src)
 {
   // TODO: implement
 }
 
-double OCLContext::dot(cg_vector *a, cg_vector *b)
+double OCLContext::dot(const cg_vector *a, const cg_vector *b)
 {
   // TODO: implement
   return 0.0;
 }
 
 double OCLContext::calc_xr(cg_vector *x, cg_vector *r,
-               cg_vector *p, cg_vector *w,
-               double alpha)
+                           const cg_vector *p, const cg_vector *w,
+                           double alpha)
 {
   // TODO: implement
   return 0.0;
 }
 
-void OCLContext::calc_p(cg_vector *p, cg_vector *r, double beta)
+void OCLContext::calc_p(cg_vector *p, const cg_vector *r, double beta)
 {
   // TODO: implement
 }
 
-void OCLContext::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void OCLContext::spmv(const cg_matrix *mat, const cg_vector *vec,
+                      cg_vector *result)
 {
   // TODO: implement
 }

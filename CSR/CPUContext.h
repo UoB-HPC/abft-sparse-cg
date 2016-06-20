@@ -30,44 +30,50 @@ class CPUContext : public CGContext
   virtual void destroy_vector(cg_vector *vec);
   virtual double* map_vector(cg_vector *v);
   virtual void unmap_vector(cg_vector *v, double *h);
-  virtual void copy_vector(cg_vector *dst, cg_vector *src);
+  virtual void copy_vector(cg_vector *dst, const cg_vector *src);
 
-  virtual double dot(cg_vector *a, cg_vector *b);
+  virtual double dot(const cg_vector *a, const cg_vector *b);
   virtual double calc_xr(cg_vector *x, cg_vector *r,
-                         cg_vector *p, cg_vector *w,
+                         const cg_vector *p, const cg_vector *w,
                          double alpha);
-  virtual void calc_p(cg_vector *p, cg_vector *r, double beta);
+  virtual void calc_p(cg_vector *p, const cg_vector *r, double beta);
 
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 
   virtual void inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips);
 };
 
 class CPUContext_Constraints : public CPUContext
 {
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 };
 
 class CPUContext_SED : public CPUContext
 {
   virtual void generate_ecc_bits(csr_element& element);
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 };
 
 class CPUContext_SEC7 : public CPUContext
 {
   virtual void generate_ecc_bits(csr_element& element);
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 };
 
 class CPUContext_SEC8 : public CPUContext
 {
   virtual void generate_ecc_bits(csr_element& element);
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 };
 
 class CPUContext_SECDED : public CPUContext
 {
   virtual void generate_ecc_bits(csr_element& element);
-  virtual void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 };

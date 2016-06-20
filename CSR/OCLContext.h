@@ -12,25 +12,26 @@ public:
   OCLContext();
   virtual ~OCLContext();
 
-  cg_matrix* create_matrix(const uint32_t *columns,
-                           const uint32_t *rows,
-                           const double *values,
-                           int N, int nnz);
-  void destroy_matrix(cg_matrix *mat);
+  virtual cg_matrix* create_matrix(const uint32_t *columns,
+                                   const uint32_t *rows,
+                                   const double *values,
+                                   int N, int nnz);
+  virtual void destroy_matrix(cg_matrix *mat);
 
-  cg_vector* create_vector(int N);
-  void destroy_vector(cg_vector *vec);
-  double* map_vector(cg_vector *v);
-  void unmap_vector(cg_vector *v, double *h);
-  void copy_vector(cg_vector *dst, cg_vector *src);
+  virtual cg_vector* create_vector(int N);
+  virtual void destroy_vector(cg_vector *vec);
+  virtual double* map_vector(cg_vector *v);
+  virtual void unmap_vector(cg_vector *v, double *h);
+  virtual void copy_vector(cg_vector *dst, const cg_vector *src);
 
-  double dot(cg_vector *a, cg_vector *b);
-  double calc_xr(cg_vector *x, cg_vector *r,
-                 cg_vector *p, cg_vector *w,
-                 double alpha);
-  void calc_p(cg_vector *p, cg_vector *r, double beta);
+  virtual double dot(const cg_vector *a, const cg_vector *b);
+  virtual double calc_xr(cg_vector *x, cg_vector *r,
+                         const cg_vector *p, const cg_vector *w,
+                         double alpha);
+  virtual void calc_p(cg_vector *p, const cg_vector *r, double beta);
 
-  void spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result);
+  virtual void spmv(const cg_matrix *mat, const cg_vector *vec,
+                    cg_vector *result);
 
-  void inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips);
+  virtual void inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips);
 };

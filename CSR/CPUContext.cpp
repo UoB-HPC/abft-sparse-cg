@@ -74,12 +74,12 @@ void CPUContext::unmap_vector(cg_vector *v, double *h)
 {
 }
 
-void CPUContext::copy_vector(cg_vector *dst, cg_vector *src)
+void CPUContext::copy_vector(cg_vector *dst, const cg_vector *src)
 {
   memcpy(dst->data, src->data, dst->N*sizeof(double));
 }
 
-double CPUContext::dot(cg_vector *a, cg_vector *b)
+double CPUContext::dot(const cg_vector *a, const cg_vector *b)
 {
   double ret = 0.0;
   for (int i = 0; i < a->N; i++)
@@ -90,7 +90,7 @@ double CPUContext::dot(cg_vector *a, cg_vector *b)
 }
 
 double CPUContext::calc_xr(cg_vector *x, cg_vector *r,
-                           cg_vector *p, cg_vector *w,
+                           const cg_vector *p, const cg_vector *w,
                            double alpha)
 {
   double ret = 0.0;
@@ -104,7 +104,7 @@ double CPUContext::calc_xr(cg_vector *x, cg_vector *r,
   return ret;
 }
 
-void CPUContext::calc_p(cg_vector *p, cg_vector *r, double beta)
+void CPUContext::calc_p(cg_vector *p, const cg_vector *r, double beta)
 {
   for (int i = 0; i < p->N; i++)
   {
@@ -112,7 +112,8 @@ void CPUContext::calc_p(cg_vector *p, cg_vector *r, double beta)
   }
 }
 
-void CPUContext::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void CPUContext::spmv(const cg_matrix *mat, const cg_vector *vec,
+                      cg_vector *result)
 {
 #pragma omp parallel for
   for (unsigned row = 0; row < mat->N; row++)
@@ -160,7 +161,7 @@ void CPUContext::inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips)
 }
 
 
-void CPUContext_Constraints::spmv(cg_matrix *mat, cg_vector *vec,
+void CPUContext_Constraints::spmv(const cg_matrix *mat, const cg_vector *vec,
                                   cg_vector *result)
 {
 #pragma omp parallel for
@@ -212,7 +213,8 @@ void CPUContext_SED::generate_ecc_bits(csr_element& element)
   element.column |= ecc_compute_overall_parity(element) << 31;
 }
 
-void CPUContext_SED::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void CPUContext_SED::spmv(const cg_matrix *mat, const cg_vector *vec,
+                          cg_vector *result)
 {
 #pragma omp parallel for
   for (unsigned row = 0; row < mat->N; row++)
@@ -249,7 +251,8 @@ void CPUContext_SEC7::generate_ecc_bits(csr_element& element)
   element.column |= ecc_compute_col8(element);
 }
 
-void CPUContext_SEC7::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void CPUContext_SEC7::spmv(const cg_matrix *mat, const cg_vector *vec,
+                           cg_vector *result)
 {
 #pragma omp parallel for
   for (unsigned row = 0; row < mat->N; row++)
@@ -293,7 +296,8 @@ void CPUContext_SEC8::generate_ecc_bits(csr_element& element)
   element.column |= ecc_compute_overall_parity(element) << 24;
 }
 
-void CPUContext_SEC8::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void CPUContext_SEC8::spmv(const cg_matrix *mat, const cg_vector *vec,
+                           cg_vector *result)
 {
 #pragma omp parallel for
   for (unsigned row = 0; row < mat->N; row++)
@@ -348,7 +352,8 @@ void CPUContext_SECDED::generate_ecc_bits(csr_element& element)
   element.column |= ecc_compute_overall_parity(element) << 24;
 }
 
-void CPUContext_SECDED::spmv(cg_matrix *mat, cg_vector *vec, cg_vector *result)
+void CPUContext_SECDED::spmv(const cg_matrix *mat, const cg_vector *vec,
+                             cg_vector *result)
 {
 #pragma omp parallel for
   for (unsigned row = 0; row < mat->N; row++)
