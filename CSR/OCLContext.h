@@ -6,6 +6,21 @@
   #include <CL/cl.h>
 #endif
 
+struct cg_vector
+{
+  int N;
+  cl_mem data;
+};
+
+struct cg_matrix
+{
+  unsigned N;
+  unsigned nnz;
+  cl_mem cols;
+  cl_mem rows;
+  cl_mem values;
+};
+
 class OCLContext : public CGContext
 {
 public:
