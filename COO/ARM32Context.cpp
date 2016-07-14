@@ -49,24 +49,24 @@ class ARM32Context_SED : public CPUContext_SED
     for (unsigned i = 0; i < mat->N; i++)
       result->data[i] = 0.0;
 
-    coo_element *ep = mat->elements;
+    coo_element *elements = mat->elements;
     asm volatile(
       // Compute pointer to end of data
-      "add     r5, %[ep], %[nnz], lsl #4\n"
+      "add     r4, %[elements], %[nnz], lsl #4\n"
 
       ".LOOP_BODY:\n\t"
 
       // Load column to r2 and row to r1
-      "ldr     r2, [%[ep]]\n\t"
-      "ldr     r1, [%[ep], #4]\n\t"
+      "ldr     r2, [%[elements]]\n\t"
+      "ldr     r1, [%[elements], #4]\n\t"
 
       // *** Parity check starts ***
       // Reduce data to 32-bits in r0
       "eor     r0, r2, r1\n\t"
-      "ldr     r4, [%[ep], #8]\n\t"
-      "eor     r0, r0, r4\n\t"
-      "ldr     r4, [%[ep], #12]\n\t"
-      "eor     r0, r0, r4\n\t"
+      "ldr     r3, [%[elements], #8]\n\t"
+      "eor     r0, r0, r3\n\t"
+      "ldr     r3, [%[elements], #12]\n\t"
+      "eor     r0, r0, r3\n\t"
 
       "eor     r0, r0, r0, lsr #16\n\t"
       "eor     r0, r0, r0, lsr #8\n\t"
@@ -75,34 +75,35 @@ class ARM32Context_SED : public CPUContext_SED
       "and     r0, r0, #0xFF\n\t"
       "ldrB    r0, [%[PARITY_TABLE], r0]\n\t"
 
-      // Branch to .ERROR if parity fails
+      // Exit loop if parity fails
       "cbnz    r0, .LOOP_END\n\t"
+      // *** Parity check ends ***
 
       // Accumulate dot product into result
       "add      r2, %[result], r2, lsl #3\n\t"
       "add      r1, %[vector], r1, lsl #3\n\t"
       "vldr.64  d5, [r2]\n\t"
-      "vldr.64  d6, [%[ep], #8]\n\t"
+      "vldr.64  d6, [%[elements], #8]\n\t"
       "vldr.64  d7, [r1]\n\t"
       "vmla.f64 d5, d6, d7\n\t"
       "vstr.64  d5, [r2]\n\t"
 
       // Increment data pointer, compare to end and branch to loop start
-      "add     %[ep], %[ep], #16\n\t"
-      "cmp     %[ep], r5\n\t"
+      "add     %[elements], %[elements], #16\n\t"
+      "cmp     %[elements], r4\n\t"
       "bne     .LOOP_BODY\n"
       ".LOOP_END:\n"
-      : [ep] "+r" (ep)
+      : [elements] "+r" (elements)
       : [result] "r" (result->data),
         [vector] "r" (vec->data),
         [nnz] "r" (mat->nnz),
         [PARITY_TABLE] "r" (PARITY_TABLE)
-      : "cc", "r0", "r1", "r2", "r4", "r5", "d5", "d6", "d7", "memory"
+      : "cc", "r0", "r1", "r2", "r3", "r4", "d5", "d6", "d7", "memory"
       );
 
-    if (ep < mat->elements+mat->nnz)
+    if (elements < mat->elements+mat->nnz)
     {
-      printf("[ECC] error detected at index %d\n", (ep - mat->elements));
+      printf("[ECC] error detected at index %d\n", (elements - mat->elements));
       exit(1);
     }
   }
