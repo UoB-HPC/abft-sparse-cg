@@ -146,16 +146,14 @@ void CPUContext::inject_bitflip(cg_matrix *mat, BitFlipKind kind, int num_flips)
   for (int i = 0; i < num_flips; i++)
   {
     int bit = (rand() % (end-start)) + start;
+    printf("*** flipping bit %d at index %d ***\n", bit, index);
     if (bit < 64)
     {
-      printf("*** flipping bit %d of value at index %d ***\n", bit, index);
-      *((uint64_t*)mat->values+index) ^= 0x1 << (bit % 32);
+      ((uint32_t*)(mat->values+index))[bit/32] ^= 0x1U << (bit % 32);
     }
     else
     {
-      bit = bit - 64;
-      printf("*** flipping bit %d of column at index %d ***\n", bit, index);
-      mat->cols[index] ^= 0x1 << (bit % 32);
+      mat->cols[index] ^= 0x1U << (bit % 32);
     }
   }
 }
@@ -210,7 +208,7 @@ void CPUContext_Constraints::spmv(const cg_matrix *mat, const cg_vector *vec,
 
 void CPUContext_SED::generate_ecc_bits(csr_element& element)
 {
-  element.column |= ecc_compute_overall_parity(element) << 31;
+  element.column |= ecc_compute_overall_parity(element) << 31L;
 }
 
 void CPUContext_SED::spmv(const cg_matrix *mat, const cg_vector *vec,
@@ -273,7 +271,7 @@ void CPUContext_SEC7::spmv(const cg_matrix *mat, const cg_vector *vec,
       {
         // Unflip bit
         uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
-        ((uint32_t*)(&element))[bit/32] ^= 0x1 << (bit % 32);
+        ((uint32_t*)(&element))[bit/32] ^= 0x1U << (bit % 32);
         mat->cols[i] = element.column;
         mat->values[i] = element.value;
 
@@ -293,7 +291,7 @@ void CPUContext_SEC7::spmv(const cg_matrix *mat, const cg_vector *vec,
 void CPUContext_SEC8::generate_ecc_bits(csr_element& element)
 {
   element.column |= ecc_compute_col8(element);
-  element.column |= ecc_compute_overall_parity(element) << 24;
+  element.column |= ecc_compute_overall_parity(element) << 24L;
 }
 
 void CPUContext_SEC8::spmv(const cg_matrix *mat, const cg_vector *vec,
@@ -321,14 +319,14 @@ void CPUContext_SEC8::spmv(const cg_matrix *mat, const cg_vector *vec,
         {
           // Unflip bit
           uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
-          ((uint32_t*)(&element))[bit/32] ^= 0x1 << (bit % 32);
+          ((uint32_t*)(&element))[bit/32] ^= 0x1U << (bit % 32);
 
           printf("[ECC] corrected bit %u at index %d\n", bit, i);
         }
         else
         {
           // Correct overall parity bit
-          element.column ^= 0x1 << 24;
+          element.column ^= 0x1U << 24;
 
           printf("[ECC] corrected overall parity bit at index %d\n", i);
         }
@@ -377,14 +375,14 @@ void CPUContext_SECDED::spmv(const cg_matrix *mat, const cg_vector *vec,
         {
           // Unflip bit
           uint32_t bit = ecc_get_flipped_bit_col8(syndrome);
-          ((uint32_t*)(&element))[bit/32] ^= 0x1 << (bit % 32);
+          ((uint32_t*)(&element))[bit/32] ^= 0x1U << (bit % 32);
 
           printf("[ECC] corrected bit %u at index %d\n", bit, i);
         }
         else
         {
           // Correct overall parity bit
-          element.column ^= 0x1 << 24;
+          element.column ^= 0x1U << 24;
 
           printf("[ECC] corrected overall parity bit at index %d\n", i);
         }

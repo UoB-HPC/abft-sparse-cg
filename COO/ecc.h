@@ -70,31 +70,31 @@ static inline uint32_t ecc_compute_col8(coo_element element)
 
   p = (data[0] & ECC7_P1_0) ^ (data[1] & ECC7_P1_1) ^
       (data[2] & ECC7_P1_2) ^ (data[3] & ECC7_P1_3);
-  result |= __builtin_parity(p) << 31;
+  result |= __builtin_parity(p) << 31U;
 
   p = (data[0] & ECC7_P2_0) ^ (data[1] & ECC7_P2_1) ^
       (data[2] & ECC7_P2_2) ^ (data[3] & ECC7_P2_3);
-  result |= __builtin_parity(p) << 30;
+  result |= __builtin_parity(p) << 30U;
 
   p = (data[0] & ECC7_P3_0) ^ (data[1] & ECC7_P3_1) ^
       (data[2] & ECC7_P3_2) ^ (data[3] & ECC7_P3_3);
-  result |= __builtin_parity(p) << 29;
+  result |= __builtin_parity(p) << 29U;
 
   p = (data[0] & ECC7_P4_0) ^ (data[1] & ECC7_P4_1) ^
       (data[2] & ECC7_P4_2) ^ (data[3] & ECC7_P4_3);
-  result |= __builtin_parity(p) << 28;
+  result |= __builtin_parity(p) << 28U;
 
   p = (data[0] & ECC7_P5_0) ^ (data[1] & ECC7_P5_1) ^
       (data[2] & ECC7_P5_2) ^ (data[3] & ECC7_P5_3);
-  result |= __builtin_parity(p) << 27;
+  result |= __builtin_parity(p) << 27U;
 
   p = (data[0] & ECC7_P6_0) ^ (data[1] & ECC7_P6_1) ^
       (data[2] & ECC7_P6_2) ^ (data[3] & ECC7_P6_3);
-  result |= __builtin_parity(p) << 26;
+  result |= __builtin_parity(p) << 26U;
 
   p = (data[0] & ECC7_P7_0) ^ (data[1] & ECC7_P7_1) ^
       (data[2] & ECC7_P7_2) ^ (data[3] & ECC7_P7_3);
-  result |= __builtin_parity(p) << 25;
+  result |= __builtin_parity(p) << 25U;
 
   return result;
 }
@@ -120,14 +120,14 @@ static inline uint32_t ecc_get_flipped_bit_col8(uint32_t syndrome)
   for (int p = 1; p <= 7; p++)
   {
     if ((syndrome >> (32-p)) & 0x1)
-      hamm_bit += 0x1<<(p-1);
+      hamm_bit += 0x1U<<(p-1);
   }
 
   // Map to actual data bit position
   uint32_t data_bit = hamm_bit - (32-__builtin_clz(hamm_bit)) - 1;
   if (is_power_of_2(hamm_bit))
     data_bit = __builtin_clz(hamm_bit);
-  else if (data_bit >= 24)
+  else if (data_bit >= 24U)
     data_bit += 8;
 
   return data_bit;
