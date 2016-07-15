@@ -91,6 +91,9 @@ class ARM32Context_SED : public CPUContext_SED
         ".NO_ERROR:\n\t"
         // *** Parity check ends ***
 
+        // Mask out parity bits
+        "and      r2, r2, #0x00FFFFFF\n\t"
+
         // Accumulate dot product into result
         "add      r2, %[vector], r2, lsl #3\n\t"
         "vldr.64  d6, [r4]\n\t"

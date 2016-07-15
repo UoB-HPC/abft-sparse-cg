@@ -79,6 +79,9 @@ class ARM32Context_SED : public CPUContext_SED
       "cbnz    r0, .LOOP_END\n\t"
       // *** Parity check ends ***
 
+      // Mask out parity bits
+      "and      r2, r2, #0x00FFFFFF\n\t"
+
       // Accumulate dot product into result
       "add      r2, %[result], r2, lsl #3\n\t"
       "add      r1, %[vector], r1, lsl #3\n\t"
